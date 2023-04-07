@@ -17,8 +17,8 @@ import {
   Center,
 } from '@chakra-ui/react';
 import { MoonIcon, SunIcon } from '@chakra-ui/icons';
-import { useQuery } from 'urql';
-import { MeDocument } from '../codegen/graphql';
+import { Mutation, useMutation, useQuery } from 'urql';
+import { LogoutDocument, MeDocument } from '../codegen/graphql';
 
 const NavLink = ({ children }: { children: ReactNode }) => (
   <Link
@@ -41,6 +41,11 @@ export default function NavBar() {
   const [{ data, fetching }] = useQuery({
     query: MeDocument,
   });
+  const [, logout] = useMutation(LogoutDocument);
+
+  const handleLogout = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    await logout({});
+  };
 
   const username = data?.me?.username;
 
@@ -94,9 +99,7 @@ export default function NavBar() {
           <MenuDivider />
           <MenuItem>Your Servers</MenuItem>
           <MenuItem>Account Settings</MenuItem>
-          <MenuItem>
-            <Link href='/login'>Logout</Link>
-          </MenuItem>
+          <MenuItem onClick={handleLogout}> Logout</MenuItem>
         </MenuList>
       </>
     );
