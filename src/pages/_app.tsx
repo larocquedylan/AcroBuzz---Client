@@ -24,6 +24,14 @@ function betterUpdateQuery<Result, Query>(
 const cacheUpdate = {
   updates: {
     Mutation: {
+      logout: (_result, args, cache, info) => {
+        betterUpdateQuery<LoginMutation, MeQuery>(
+          cache,
+          { query: MeDocument },
+          _result,
+          () => ({ me: null })
+        );
+      },
       login: (_result, args, cache, info) => {
         betterUpdateQuery<LoginMutation, MeQuery>(
           cache,
