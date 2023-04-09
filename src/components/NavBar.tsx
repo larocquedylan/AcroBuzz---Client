@@ -19,7 +19,6 @@ import {
 import { MoonIcon, SunIcon } from '@chakra-ui/icons';
 import { Mutation, useMutation, useQuery } from 'urql';
 import { LogoutDocument, MeDocument } from '../codegen/graphql';
-import { isServerSide } from '../utils/isServerSide';
 
 const NavLink = ({ children }: { children: ReactNode }) => (
   <Link
