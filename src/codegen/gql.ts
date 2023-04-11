@@ -13,12 +13,12 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * Therefore it is highly recommended to use the babel or swc plugin for production.
  */
 const documents = {
-    "fragment UserFragment on User {\n  _id\n  username\n  createdAt\n}": types.UserFragmentFragmentDoc,
+    "fragment UserFragment on UserType {\n  id\n  username\n  createdAt\n}": types.UserFragmentFragmentDoc,
     "mutation Login($username: String!, $password: String!) {\n  login(options: {username: $username, password: $password}) {\n    errors {\n      field\n      message\n    }\n    user {\n      ...UserFragment\n    }\n  }\n}": types.LoginDocument,
     "mutation Logout {\n  logout\n}": types.LogoutDocument,
     "mutation Register($username: String!, $password: String!) {\n  register(options: {username: $username, password: $password}) {\n    errors {\n      field\n      message\n    }\n    user {\n      ...UserFragment\n    }\n  }\n}": types.RegisterDocument,
     "query Me {\n  me {\n    ...UserFragment\n  }\n}": types.MeDocument,
-    "query Posts {\n  posts {\n    _id\n    createdAt\n    title\n    updatedAt\n  }\n}": types.PostsDocument,
+    "query Posts {\n  posts {\n    id\n    createdAt\n    title\n    updatedAt\n  }\n}": types.PostsDocument,
 };
 
 /**
@@ -38,7 +38,7 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "fragment UserFragment on User {\n  _id\n  username\n  createdAt\n}"): (typeof documents)["fragment UserFragment on User {\n  _id\n  username\n  createdAt\n}"];
+export function graphql(source: "fragment UserFragment on UserType {\n  id\n  username\n  createdAt\n}"): (typeof documents)["fragment UserFragment on UserType {\n  id\n  username\n  createdAt\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -58,7 +58,7 @@ export function graphql(source: "query Me {\n  me {\n    ...UserFragment\n  }\n}
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "query Posts {\n  posts {\n    _id\n    createdAt\n    title\n    updatedAt\n  }\n}"): (typeof documents)["query Posts {\n  posts {\n    _id\n    createdAt\n    title\n    updatedAt\n  }\n}"];
+export function graphql(source: "query Posts {\n  posts {\n    id\n    createdAt\n    title\n    updatedAt\n  }\n}"): (typeof documents)["query Posts {\n  posts {\n    id\n    createdAt\n    title\n    updatedAt\n  }\n}"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};
