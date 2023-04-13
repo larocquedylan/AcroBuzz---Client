@@ -1,5 +1,0 @@
-fragment UserFragment on User {
-  _id
-  username
-  createdAt
-}

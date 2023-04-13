@@ -19,6 +19,8 @@ import {
 import { MoonIcon, SunIcon } from '@chakra-ui/icons';
 import { Mutation, useMutation, useQuery } from 'urql';
 import { LogoutDocument, MeDocument } from '../codegen/graphql';
+import { withUrqlClient } from 'next-urql';
+import { createUrqlClient } from '../utils/createUrqlClient';
 
 const NavLink = ({ children }: { children: ReactNode }) => (
   <Link
@@ -35,7 +37,8 @@ const NavLink = ({ children }: { children: ReactNode }) => (
   </Link>
 );
 
-export default function NavBar() {
+// export default function NavBar() {
+function NavBar() {
   const { colorMode, toggleColorMode } = useColorMode();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [{ data, fetching }] = useQuery({
@@ -133,3 +136,5 @@ export default function NavBar() {
     </>
   );
 }
+
+export default withUrqlClient(createUrqlClient, { ssr: false })(NavBar);
