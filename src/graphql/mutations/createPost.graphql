@@ -1,0 +1,17 @@
+mutation CreatePost($title: String!, $text: String!) {
+  createPost(title: $title, text: $text) {
+    id
+    title
+    text
+    createdAt
+    updatedAt
+    author {
+      id
+      username
+    }
+    votes {
+      id
+      voteType
+    }
+  }
+}
