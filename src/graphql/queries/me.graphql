@@ -1,6 +1,6 @@
 query Me {
   # me
-  user {
-    ...UserFragment
+  me {
+    ...RegularUser
   }
 }
