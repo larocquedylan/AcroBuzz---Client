@@ -21,6 +21,7 @@ import { Mutation, useMutation, useQuery } from 'urql';
 import { LogoutDocument, MeDocument } from '../codegen/graphql';
 import { withUrqlClient } from 'next-urql';
 import { createUrqlClient } from '../utils/createUrqlClient';
+import { isServerSide } from '../utils/isServerSide';
 
 const NavLink = ({ children }: { children: ReactNode }) => (
   <Link
@@ -43,6 +44,7 @@ function NavBar() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [{ data, fetching }] = useQuery({
     query: MeDocument,
+    pause: isServerSide,
   });
 
   const [, logout] = useMutation(LogoutDocument);
@@ -57,7 +59,7 @@ function NavBar() {
 
   if (fetching) {
     body = <div>loading...</div>;
-  } else if (!data.me) {
+  } else if (!data?.me) {
     body = (
       <Link href='/login' style={{ textDecoration: 'none' }}>
         <Button
@@ -137,4 +139,5 @@ function NavBar() {
   );
 }
 
-export default withUrqlClient(createUrqlClient, { ssr: false })(NavBar);
+// export default withUrqlClient(createUrqlClient, { ssr: false })(NavBar);
+export default NavBar;
