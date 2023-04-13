@@ -23,9 +23,13 @@ const Login: React.FC<{}> = ({}) => {
           const response = await loginFunc(values);
           if (response.data?.login.errors) {
             setErrors(toErrorMap(response.data.login.errors));
+            console.log('errors', response.data.login.errors); // errors
           } else if (response.data?.login.user) {
+            console.log('worked');
             // worked
             router.push('/');
+          } else {
+            console.log('Unexpected response format', response); //unexpected
           }
         }}
       >
