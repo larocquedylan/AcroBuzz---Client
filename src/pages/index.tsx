@@ -16,7 +16,7 @@ const Index = () => {
       {!data && fetching ? (
         <p>loading.. </p>
       ) : (
-        data.posts.map((post) => <div key={post._id}> {post.title}</div>)
+        data.posts.map((post) => <div key={post.id}> {post.title}</div>)
       )}
     </>
   );
