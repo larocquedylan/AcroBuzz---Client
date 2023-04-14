@@ -1,14 +1,12 @@
-import React, { useEffect } from 'react';
-import Wrapper from '../components/Wrapper';
-import { Box, Button, Textarea } from '@chakra-ui/react';
-import { Formik, Form } from 'formik';
-import router, { useRouter } from 'next/router';
-import InputField from '../components/InputField';
-import { toErrorMap } from '../utils/toErrorMap';
-import NavBar from '../components/NavBar';
-import { CreatePostDocument, MeDocument } from '../codegen/graphql';
-import { useMutation, useQuery } from 'urql';
+import { Box, Button } from '@chakra-ui/react';
+import { Form, Formik } from 'formik';
 import { withUrqlClient } from 'next-urql';
+import { useRouter } from 'next/router';
+import React from 'react';
+import { useMutation } from 'urql';
+import { CreatePostDocument } from '../codegen/graphql';
+import InputField from '../components/InputField';
+import Layout from '../components/Layout';
 import { createUrqlClient } from '../utils/createUrqlClient';
 import { userIsAuth } from '../utils/userIsAuth';
 
@@ -19,33 +17,16 @@ const CreatePost: React.FC<{}> = ({}) => {
 
   return (
     <>
-      <NavBar />
-      <Wrapper>
+      <Layout variant='regular'>
         <Formik
           initialValues={{ title: '', text: '' }}
-          onSubmit={async (values, { setErrors }) => {
-            console.log('executing...', values);
-            try {
-              await createPost(values);
-              router.push('/');
-            } catch (error) {
+          onSubmit={async (values) => {
+            const { error } = await createPost(values);
+            if (error) {
               router.push('/login');
               alert(`error caught: ${error}`);
             }
-            // const response = await createPost(values);
-            // if (response.data?.createPost.errors) {
-            //   setErrors(toErrorMap(response.data.createPost.errors));
-            // } else if (response.data?.createPost.post) {
-            //   router.push('/');
-            // }
-
-            //   const response = await loginFunc(values);
-            //   if (response.data?.login.errors) {
-            //     setErrors(toErrorMap(response.data.login.errors));
-            //   } else if (response.data?.login.user) {
-            //     // worked
-            //     router.push('/');
-            //   }
+            router.push('/');
           }}
         >
           {({ values }) => (
@@ -73,7 +54,7 @@ const CreatePost: React.FC<{}> = ({}) => {
             </Box>
           )}
         </Formik>
-      </Wrapper>
+      </Layout>
     </>
   );
 };
