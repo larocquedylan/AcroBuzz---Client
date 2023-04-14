@@ -1,8 +1,28 @@
-query Posts {
-  posts {
-    id
-    createdAt
-    title
-    updatedAt
+# query Posts {
+#   posts {
+#     id
+#     createdAt
+#     title
+#     updatedAt
+#   }
+# }
+
+query GetPaginatedPosts($cursor: String, $limit: Int) {
+  posts(input: { cursor: $cursor, limit: $limit }) {
+    posts {
+      id
+      createdAt
+      updatedAt
+      title
+      text
+      author {
+        id
+        username
+      }
+      votes {
+        id
+      }
+    }
+    nextCursor
   }
 }
