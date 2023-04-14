@@ -14,6 +14,7 @@ import { createUrqlClient } from '../utils/createUrqlClient';
 const Login: React.FC<{}> = ({}) => {
   const [, loginFunc] = useMutation(LoginDocument);
   const router = useRouter();
+  console.log('🚀 ~ file: login.tsx:17 ~ router:', router);
 
   return (
     <Wrapper variant='small'>
@@ -21,15 +22,18 @@ const Login: React.FC<{}> = ({}) => {
         initialValues={{ username: '', password: '' }}
         onSubmit={async (values, { setErrors }) => {
           const response = await loginFunc(values);
+
           if (response.data?.login.errors) {
             setErrors(toErrorMap(response.data.login.errors));
-            console.log('errors', response.data.login.errors); // errors
+            // console.log('errors', response.data.login.errors); // errors
           } else if (response.data?.login.user) {
-            console.log('worked');
-            // worked
-            router.push('/');
-          } else {
-            console.log('Unexpected response format', response); //unexpected
+            // if coming query has string, came from unauth error
+            if (typeof router.query.next === 'string') {
+              router.push(router.query.next);
+            } else {
+              // worked
+              router.push('/');
+            }
           }
         }}
       >
