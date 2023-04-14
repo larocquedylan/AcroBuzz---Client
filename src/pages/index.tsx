@@ -4,7 +4,8 @@ import { createUrqlClient } from '../utils/createUrqlClient';
 import { PostsDocument } from '../codegen/graphql';
 import { useQuery } from 'urql';
 import Layout from '../components/Layout';
-import Link from 'next/link';
+import NextLink from 'next/link';
+import { Link } from '@chakra-ui/react';
 
 const Index = () => {
   const [{ data, fetching }] = useQuery({
@@ -13,7 +14,10 @@ const Index = () => {
 
   return (
     <Layout>
-      <Link href={'/create-post'}> create post </Link>
+      <NextLink href={'/create-post'}>
+        <Link>create post</Link>
+      </NextLink>
+
       <br />
       {!data && fetching ? (
         <p>loading.. </p>
