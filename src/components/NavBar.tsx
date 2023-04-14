@@ -1,25 +1,25 @@
-import { ReactNode } from 'react';
+import { MoonIcon, SunIcon } from '@chakra-ui/icons';
 import {
-  Box,
-  Flex,
   Avatar,
-  Link,
+  Box,
   Button,
+  Center,
+  Flex,
+  Link,
   Menu,
   MenuButton,
-  MenuList,
-  MenuItem,
   MenuDivider,
-  useDisclosure,
-  useColorModeValue,
+  MenuItem,
+  MenuList,
   Stack,
   useColorMode,
-  Center,
+  useColorModeValue,
+  useDisclosure,
 } from '@chakra-ui/react';
-import { MoonIcon, SunIcon } from '@chakra-ui/icons';
-import { Mutation, useMutation, useQuery } from 'urql';
-import { LogoutDocument, MeDocument } from '../codegen/graphql';
 import { withUrqlClient } from 'next-urql';
+import { ReactNode } from 'react';
+import { useMutation, useQuery } from 'urql';
+import { LogoutDocument, MeDocument } from '../codegen/graphql';
 import { createUrqlClient } from '../utils/createUrqlClient';
 import { isServerSide } from '../utils/isServerSide';
 
@@ -139,5 +139,5 @@ function NavBar() {
   );
 }
 
-// export default withUrqlClient(createUrqlClient, { ssr: false })(NavBar);
-export default NavBar;
+export default withUrqlClient(createUrqlClient, { ssr: false })(NavBar);
+// export default NavBar;
