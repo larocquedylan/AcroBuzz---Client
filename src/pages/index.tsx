@@ -3,6 +3,8 @@ import { withUrqlClient } from 'next-urql';
 import { createUrqlClient } from '../utils/createUrqlClient';
 import { PostsDocument } from '../codegen/graphql';
 import { useQuery } from 'urql';
+import Layout from '../components/Layout';
+import Link from 'next/link';
 
 const Index = () => {
   const [{ data, fetching }] = useQuery({
@@ -10,15 +12,15 @@ const Index = () => {
   });
 
   return (
-    <>
-      <NavBar />
-      <div> Hello World</div>
+    <Layout>
+      <Link href={'/create-post'}> create post </Link>
+      <br />
       {!data && fetching ? (
         <p>loading.. </p>
       ) : (
         data.posts.map((post) => <div key={post.id}> {post.title}</div>)
       )}
-    </>
+    </Layout>
   );
 };
 
