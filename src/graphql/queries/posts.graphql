@@ -7,8 +7,28 @@
 #   }
 # }
 
+# query GetPaginatedPosts($cursor: String, $limit: Int) {
+#   posts(input: { cursor: $cursor, limit: $limit }) {
+#     posts {
+#       id
+#       createdAt
+#       updatedAt
+#       title
+#       textSnippet
+#       author {
+#         id
+#         username
+#       }
+#       votes {
+#         id
+#       }
+#     }
+#     nextCursor
+#   }
+# }
+
 query GetPaginatedPosts($cursor: String, $limit: Int) {
-  posts(input: { cursor: $cursor, limit: $limit }) {
+  posts(input: { cursor: $cursor, limit: 1 }) {
     posts {
       id
       createdAt
@@ -19,9 +39,8 @@ query GetPaginatedPosts($cursor: String, $limit: Int) {
         id
         username
       }
-      votes {
-        id
-      }
+      text
+      totalPoints
     }
     nextCursor
   }
