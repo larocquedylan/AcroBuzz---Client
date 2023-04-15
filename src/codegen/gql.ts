@@ -14,7 +14,7 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  */
 const documents = {
     "fragment RegularUser on UserType {\n  id\n  username\n  createdAt\n}": types.RegularUserFragmentDoc,
-    "mutation CreatePost($title: String!, $text: String!) {\n  createPost(title: $title, text: $text) {\n    id\n    title\n    text\n    createdAt\n    updatedAt\n    author {\n      id\n      username\n    }\n    votes {\n      id\n      voteType\n    }\n  }\n}": types.CreatePostDocument,
+    "mutation CreatePost($title: String!, $text: String!) {\n  createPost(title: $title, text: $text) {\n    id\n    title\n    text\n    createdAt\n    updatedAt\n    author {\n      id\n      username\n    }\n    votes {\n      id\n      voteValue\n    }\n  }\n}": types.CreatePostDocument,
     "mutation Login($username: String!, $password: String!) {\n  login(options: {username: $username, password: $password}) {\n    errors {\n      field\n      message\n    }\n    user {\n      ...RegularUser\n    }\n  }\n}": types.LoginDocument,
     "mutation Logout {\n  logout\n}": types.LogoutDocument,
     "mutation Register($username: String!, $password: String!) {\n  register(options: {username: $username, password: $password}) {\n    errors {\n      field\n      message\n    }\n    user {\n      ...RegularUser\n    }\n  }\n}": types.RegisterDocument,
@@ -43,7 +43,7 @@ export function graphql(source: "fragment RegularUser on UserType {\n  id\n  use
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "mutation CreatePost($title: String!, $text: String!) {\n  createPost(title: $title, text: $text) {\n    id\n    title\n    text\n    createdAt\n    updatedAt\n    author {\n      id\n      username\n    }\n    votes {\n      id\n      voteType\n    }\n  }\n}"): (typeof documents)["mutation CreatePost($title: String!, $text: String!) {\n  createPost(title: $title, text: $text) {\n    id\n    title\n    text\n    createdAt\n    updatedAt\n    author {\n      id\n      username\n    }\n    votes {\n      id\n      voteType\n    }\n  }\n}"];
+export function graphql(source: "mutation CreatePost($title: String!, $text: String!) {\n  createPost(title: $title, text: $text) {\n    id\n    title\n    text\n    createdAt\n    updatedAt\n    author {\n      id\n      username\n    }\n    votes {\n      id\n      voteValue\n    }\n  }\n}"): (typeof documents)["mutation CreatePost($title: String!, $text: String!) {\n  createPost(title: $title, text: $text) {\n    id\n    title\n    text\n    createdAt\n    updatedAt\n    author {\n      id\n      username\n    }\n    votes {\n      id\n      voteValue\n    }\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
