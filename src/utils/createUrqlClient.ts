@@ -28,16 +28,8 @@ const errorExchange: Exchange =
 export const createUrqlClient = (ssrExchange: any, ctx: any) => {
   let cookie = '';
   if (isServerSide) {
-    // console.log(
-    //   '🚀 ~ file: createUrqlClient.ts:16~ isServerSide: if(isServerSide) true',
-    //   isServerSide
-    // );
     cookie = ctx?.req?.headers?.cookie;
   }
-  // console.log(
-  //   '🚀 ~ file: createUrqlClient.ts:20 ~ createUrqlClient ~ isServerSide: false ',
-  //   isServerSide
-  // );
 
   return {
     url: 'http://localhost:8080/graphql',
@@ -57,6 +49,15 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
       cacheExchange({
         updates: {
           Mutation: {
+            createPost: (_result, args, cache, info) => {
+              const allFields = cache.inspectFields('Query');
+              const postQueries = allFields.filter(
+                ({ fieldName }) => fieldName === 'posts'
+              );
+              postQueries.forEach(({ arguments: queryArgs }) => {
+                cache.invalidate('Query', 'posts', queryArgs);
+              });
+            },
             logout: (_result, args, cache, info) => {
               betterUpdateQuery<LoginMutation, MeQuery>(
                 cache,
