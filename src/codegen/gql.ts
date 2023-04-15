@@ -19,7 +19,7 @@ const documents = {
     "mutation Logout {\n  logout\n}": types.LogoutDocument,
     "mutation Register($username: String!, $password: String!) {\n  register(options: {username: $username, password: $password}) {\n    errors {\n      field\n      message\n    }\n    user {\n      ...RegularUser\n    }\n  }\n}": types.RegisterDocument,
     "query Me {\n  me {\n    ...RegularUser\n  }\n}": types.MeDocument,
-    "query GetPaginatedPosts($cursor: String, $limit: Int) {\n  posts(input: {cursor: $cursor, limit: $limit}) {\n    posts {\n      id\n      createdAt\n      updatedAt\n      title\n      text\n      author {\n        id\n        username\n      }\n      votes {\n        id\n      }\n    }\n    nextCursor\n  }\n}": types.GetPaginatedPostsDocument,
+    "query GetPaginatedPosts($cursor: String, $limit: Int) {\n  posts(input: {cursor: $cursor, limit: $limit}) {\n    posts {\n      id\n      createdAt\n      updatedAt\n      title\n      textSnippet\n      author {\n        id\n        username\n      }\n      votes {\n        id\n      }\n    }\n    nextCursor\n  }\n}": types.GetPaginatedPostsDocument,
 };
 
 /**
@@ -63,7 +63,7 @@ export function graphql(source: "query Me {\n  me {\n    ...RegularUser\n  }\n}"
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "query GetPaginatedPosts($cursor: String, $limit: Int) {\n  posts(input: {cursor: $cursor, limit: $limit}) {\n    posts {\n      id\n      createdAt\n      updatedAt\n      title\n      text\n      author {\n        id\n        username\n      }\n      votes {\n        id\n      }\n    }\n    nextCursor\n  }\n}"): (typeof documents)["query GetPaginatedPosts($cursor: String, $limit: Int) {\n  posts(input: {cursor: $cursor, limit: $limit}) {\n    posts {\n      id\n      createdAt\n      updatedAt\n      title\n      text\n      author {\n        id\n        username\n      }\n      votes {\n        id\n      }\n    }\n    nextCursor\n  }\n}"];
+export function graphql(source: "query GetPaginatedPosts($cursor: String, $limit: Int) {\n  posts(input: {cursor: $cursor, limit: $limit}) {\n    posts {\n      id\n      createdAt\n      updatedAt\n      title\n      textSnippet\n      author {\n        id\n        username\n      }\n      votes {\n        id\n      }\n    }\n    nextCursor\n  }\n}"): (typeof documents)["query GetPaginatedPosts($cursor: String, $limit: Int) {\n  posts(input: {cursor: $cursor, limit: $limit}) {\n    posts {\n      id\n      createdAt\n      updatedAt\n      title\n      textSnippet\n      author {\n        id\n        username\n      }\n      votes {\n        id\n      }\n    }\n    nextCursor\n  }\n}"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

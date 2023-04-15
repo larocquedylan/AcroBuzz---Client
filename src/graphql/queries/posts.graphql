@@ -14,7 +14,7 @@ query GetPaginatedPosts($cursor: String, $limit: Int) {
       createdAt
       updatedAt
       title
-      text
+      textSnippet
       author {
         id
         username
