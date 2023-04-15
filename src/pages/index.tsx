@@ -1,12 +1,21 @@
-import NavBar from '../components/NavBar';
 import { withUrqlClient } from 'next-urql';
 import { createUrqlClient } from '../utils/createUrqlClient';
 import { GetPaginatedPostsDocument, Exact } from '../codegen/graphql';
 import { useQuery } from 'urql';
 import Layout from '../components/Layout';
 import NextLink from 'next/link';
-import { Link } from '@chakra-ui/react';
-import { useState } from 'react';
+import {
+  Box,
+  Card,
+  CardBody,
+  CardHeader,
+  Center,
+  Heading,
+  Link,
+  Stack,
+  Text,
+} from '@chakra-ui/react';
+import { useEffect, useState } from 'react';
 
 const Index = () => {
   const [variables, setVariables] = useState<
@@ -17,6 +26,22 @@ const Index = () => {
     variables,
   });
 
+  const [allPosts, setAllPosts] = useState([]);
+
+  useEffect(() => {
+    if (data && data.posts.posts) {
+      setAllPosts((prevPosts) => {
+        // Merge the previous and new data
+        const combinedPosts = [...prevPosts, ...data.posts.posts];
+        // Remove duplicates
+        return combinedPosts.filter(
+          (post, index, self) =>
+            self.findIndex((p) => p.id === post.id) === index
+        );
+      });
+    }
+  }, [data]);
+
   const loadMorePosts = () => {
     if (data && data.posts.nextCursor) {
       setVariables({ cursor: data.posts.nextCursor, limit: 10 });
@@ -26,14 +51,25 @@ const Index = () => {
   return (
     <Layout>
       <NextLink href={'/create-post'}>
-        <Link>create post</Link>
+        <Link alignSelf={`Center`}>create post</Link>
       </NextLink>
 
       <br />
       {!data && fetching ? (
         <p>loading.. </p>
       ) : (
-        data.posts.posts.map((post) => <div key={post.id}> {post.title}</div>)
+        <Stack spacing='4'>
+          {allPosts.map((post) => (
+            <Card key={post.id} variant={'elevated'}>
+              <CardHeader>
+                <Heading size='md'>{post.title}</Heading>
+              </CardHeader>
+              <CardBody>
+                <Text>{post.textSnippet}</Text>
+              </CardBody>
+            </Card>
+          ))}
+        </Stack>
       )}
       {data && data.posts.nextCursor && (
         <button onClick={loadMorePosts}>Load More</button>
@@ -43,34 +79,3 @@ const Index = () => {
 };
 
 export default withUrqlClient(createUrqlClient, { ssr: true })(Index);
-
-// const Index = () => {
-//   const [variables, setVariables] = useState({ input: { limit: 10 } });
-//   const [{ data, fetching }] = useQuery({
-//     query: GetPaginatedPostsDocument,
-//     variables,
-//   });
-
-//   const loadMorePosts = () => {
-//     if (data && data.posts.nextCursor) {
-//       setVariables({ input: { cursor: data.posts.nextCursor, limit: 10 } });
-//     }
-//   };
-
-//   return (
-//     <Layout>
-//       <NextLink href={'/create-post'}>
-//         <Link>create post</Link>
-//       </NextLink>
-
-//       <br />
-//       {!data && fetching ? (
-//         <p>loading.. </p>
-//       ) : (
-//         data.posts.map((post) => <div key={post.id}> {post.title}</div>)
-//       )}
-//     </Layout>
-//   );
-// };
-
-// export default withUrqlClient(createUrqlClient, { ssr: true })(Index);
