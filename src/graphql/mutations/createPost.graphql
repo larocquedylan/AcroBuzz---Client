@@ -11,7 +11,7 @@ mutation CreatePost($title: String!, $text: String!) {
     }
     votes {
       id
-      voteType
+      voteValue
     }
   }
 }

@@ -1,29 +1,35 @@
-import { Client, fetchExchange } from 'urql';
 import { cacheExchange } from '@urql/exchange-graphcache';
+import router from 'next/router';
+import { Exchange, fetchExchange } from 'urql';
+import { pipe, tap } from 'wonka';
 import {
   LoginMutation,
-  MeQuery,
   MeDocument,
+  MeQuery,
   RegisterMutation,
 } from '../codegen/graphql';
 import { betterUpdateQuery } from './betterUpdateQuery';
 import { isServerSide } from './isServerSide';
 
+const errorExchange: Exchange =
+  ({ forward }) =>
+  (ops$) => {
+    return pipe(
+      forward(ops$),
+      tap(({ error }) => {
+        if (error?.message.includes('not authenticated')) {
+          router.replace('/login');
+          console.log('🚀 ~ file: createUrqlClient.ts:20 ~ error', error);
+        }
+      })
+    );
+  };
+
 export const createUrqlClient = (ssrExchange: any, ctx: any) => {
   let cookie = '';
-
   if (isServerSide) {
-    console.log(
-      '🚀 ~ file: createUrqlClient.ts:16 ~ createUrqlClient ~ isServerSide: if(isServerSide) true',
-      isServerSide
-    );
     cookie = ctx?.req?.headers?.cookie;
   }
-
-  console.log(
-    '🚀 ~ file: createUrqlClient.ts:20 ~ createUrqlClient ~ isServerSide: false ',
-    isServerSide
-  );
 
   return {
     url: 'http://localhost:8080/graphql',
@@ -43,6 +49,15 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
       cacheExchange({
         updates: {
           Mutation: {
+            createPost: (_result, args, cache, info) => {
+              const allFields = cache.inspectFields('Query');
+              const postQueries = allFields.filter(
+                ({ fieldName }) => fieldName === 'posts'
+              );
+              postQueries.forEach(({ arguments: queryArgs }) => {
+                cache.invalidate('Query', 'posts', queryArgs);
+              });
+            },
             logout: (_result, args, cache, info) => {
               betterUpdateQuery<LoginMutation, MeQuery>(
                 cache,
@@ -86,6 +101,7 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
           },
         },
       }),
+      errorExchange,
       ssrExchange,
       fetchExchange,
     ],

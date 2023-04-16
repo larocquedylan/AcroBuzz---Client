@@ -1,27 +1,31 @@
-import { ReactNode } from 'react';
+import { MoonIcon, SunIcon } from '@chakra-ui/icons';
 import {
-  Box,
-  Flex,
   Avatar,
-  Link,
+  Box,
   Button,
+  Center,
+  Flex,
+  Link,
   Menu,
   MenuButton,
-  MenuList,
-  MenuItem,
   MenuDivider,
-  useDisclosure,
-  useColorModeValue,
+  MenuItem,
+  MenuList,
   Stack,
   useColorMode,
-  Center,
+  useColorModeValue,
+  useDisclosure,
 } from '@chakra-ui/react';
-import { MoonIcon, SunIcon } from '@chakra-ui/icons';
-import { Mutation, useMutation, useQuery } from 'urql';
-import { LogoutDocument, MeDocument } from '../codegen/graphql';
 import { withUrqlClient } from 'next-urql';
+import { ReactNode, useEffect, useState } from 'react';
+import { useMutation, useQuery } from 'urql';
+import { LogoutDocument, MeDocument, MeQuery } from '../codegen/graphql';
 import { createUrqlClient } from '../utils/createUrqlClient';
 import { isServerSide } from '../utils/isServerSide';
+
+interface NavBarProps {
+  pageProps: any;
+}
 
 const NavLink = ({ children }: { children: ReactNode }) => (
   <Link
@@ -39,13 +43,20 @@ const NavLink = ({ children }: { children: ReactNode }) => (
 );
 
 // export default function NavBar() {
-function NavBar() {
+function NavBar({ pageProps }: NavBarProps) {
   const { colorMode, toggleColorMode } = useColorMode();
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [{ data, fetching }] = useQuery({
+
+  const [result, setResult] = useState({ data: undefined, fetching: true });
+
+  const [{ data, fetching }] = useQuery<MeQuery>({
     query: MeDocument,
     pause: isServerSide,
   });
+
+  useEffect(() => {
+    setResult({ data, fetching });
+  }, [data, fetching]);
 
   const [, logout] = useMutation(LogoutDocument);
 
@@ -53,13 +64,17 @@ function NavBar() {
     await logout({});
   };
 
-  const username = data?.me?.username;
+  const [username, setUsername] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    setUsername(result.data?.me?.username);
+  }, [result.data]);
 
   let body = null;
 
-  if (fetching) {
+  if (result.fetching) {
     body = <div>loading...</div>;
-  } else if (!data?.me) {
+  } else if (!result.data?.me) {
     body = (
       <Link href='/login' style={{ textDecoration: 'none' }}>
         <Button
@@ -139,5 +154,5 @@ function NavBar() {
   );
 }
 
-// export default withUrqlClient(createUrqlClient, { ssr: false })(NavBar);
-export default NavBar;
+export default withUrqlClient(createUrqlClient, { ssr: true })(NavBar);
+// export default NavBar;
