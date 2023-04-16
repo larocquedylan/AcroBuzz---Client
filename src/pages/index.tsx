@@ -1,21 +1,19 @@
-import { withUrqlClient } from 'next-urql';
-import { createUrqlClient } from '../utils/createUrqlClient';
-import { GetPaginatedPostsDocument, Exact } from '../codegen/graphql';
-import { useQuery } from 'urql';
-import Layout from '../components/Layout';
-import NextLink from 'next/link';
 import {
-  Box,
   Card,
   CardBody,
   CardHeader,
-  Center,
   Heading,
   Link,
   Stack,
   Text,
 } from '@chakra-ui/react';
+import { withUrqlClient } from 'next-urql';
+import NextLink from 'next/link';
 import { useEffect, useState } from 'react';
+import { useQuery } from 'urql';
+import { Exact, GetPaginatedPostsDocument } from '../codegen/graphql';
+import Layout from '../components/Layout';
+import { createUrqlClient } from '../utils/createUrqlClient';
 
 const Index = () => {
   const [variables, setVariables] = useState<
@@ -63,6 +61,7 @@ const Index = () => {
             <Card key={post.id} variant={'elevated'}>
               <CardHeader>
                 <Heading size='md'>{post.title}</Heading>
+                <Text my='2'>Author: {post.author.username} </Text>
               </CardHeader>
               <CardBody>
                 <Text>{post.textSnippet}</Text>

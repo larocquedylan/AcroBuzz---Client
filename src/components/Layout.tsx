@@ -5,12 +5,13 @@ import Wrapper, { WrapperVariant } from './Wrapper';
 interface LayoutProps {
   variant?: WrapperVariant;
   children: ReactNode;
+  pageProps?: any;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, variant }) => {
+const Layout: React.FC<LayoutProps> = ({ children, variant, pageProps }) => {
   return (
     <>
-      <NavBar />
+      <NavBar pageProps={pageProps} />
       <Wrapper variant={variant}>{children}</Wrapper>
     </>
   );
