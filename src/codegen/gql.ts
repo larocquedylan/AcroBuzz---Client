@@ -18,6 +18,7 @@ const documents = {
     "mutation Login($username: String!, $password: String!) {\n  login(options: {username: $username, password: $password}) {\n    errors {\n      field\n      message\n    }\n    user {\n      ...RegularUser\n    }\n  }\n}": types.LoginDocument,
     "mutation Logout {\n  logout\n}": types.LogoutDocument,
     "mutation Register($username: String!, $password: String!) {\n  register(options: {username: $username, password: $password}) {\n    errors {\n      field\n      message\n    }\n    user {\n      ...RegularUser\n    }\n  }\n}": types.RegisterDocument,
+    "mutation Vote($voteValue: Int!, $postId: Int!) {\n  vote(voteValue: $voteValue, postId: $postId) {\n    id\n    voteValue\n    postId\n    post {\n      id\n    }\n    userId\n    user {\n      id\n      username\n    }\n  }\n}": types.VoteDocument,
     "query Me {\n  me {\n    ...RegularUser\n  }\n}": types.MeDocument,
     "query GetPaginatedPosts($cursor: String, $limit: Int) {\n  posts(input: {cursor: $cursor, limit: $limit}) {\n    posts {\n      id\n      createdAt\n      updatedAt\n      title\n      textSnippet\n      author {\n        id\n        username\n      }\n      text\n      totalPoints\n    }\n    nextCursor\n  }\n}": types.GetPaginatedPostsDocument,
 };
@@ -56,6 +57,10 @@ export function graphql(source: "mutation Logout {\n  logout\n}"): (typeof docum
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "mutation Register($username: String!, $password: String!) {\n  register(options: {username: $username, password: $password}) {\n    errors {\n      field\n      message\n    }\n    user {\n      ...RegularUser\n    }\n  }\n}"): (typeof documents)["mutation Register($username: String!, $password: String!) {\n  register(options: {username: $username, password: $password}) {\n    errors {\n      field\n      message\n    }\n    user {\n      ...RegularUser\n    }\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation Vote($voteValue: Int!, $postId: Int!) {\n  vote(voteValue: $voteValue, postId: $postId) {\n    id\n    voteValue\n    postId\n    post {\n      id\n    }\n    userId\n    user {\n      id\n      username\n    }\n  }\n}"): (typeof documents)["mutation Vote($voteValue: Int!, $postId: Int!) {\n  vote(voteValue: $voteValue, postId: $postId) {\n    id\n    voteValue\n    postId\n    post {\n      id\n    }\n    userId\n    user {\n      id\n      username\n    }\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
