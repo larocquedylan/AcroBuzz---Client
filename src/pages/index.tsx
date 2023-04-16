@@ -3,6 +3,7 @@ import {
   Card,
   CardBody,
   CardHeader,
+  Flex,
   Heading,
   Link,
   Stack,
@@ -15,6 +16,9 @@ import { useQuery } from 'urql';
 import { Exact, GetPaginatedPostsDocument } from '../codegen/graphql';
 import Layout from '../components/Layout';
 import { createUrqlClient } from '../utils/createUrqlClient';
+import { IconButton } from '@chakra-ui/react';
+import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
+import VoteSection from '../components/voteSection';
 
 const Index = () => {
   const [variables, setVariables] = useState<
@@ -57,16 +61,17 @@ const Index = () => {
       {!data && fetching ? (
         <p>loading.. </p>
       ) : (
-        <Stack spacing='4'>
+        <Stack spacing='6'>
           {allPosts.map((post) => (
-            <Card key={post.id} variant={'elevated'}>
-              <CardHeader>
-                <Heading size='md'>{post.title}</Heading>
-                <Text my='2'>Author: {post.author.username} </Text>
-              </CardHeader>
-              <CardBody>
-                <Text>{post.textSnippet}</Text>
-              </CardBody>
+            <Card key={post.id} variant={'elevated'} padding={8}>
+              <Flex>
+                <VoteSection post={post} />
+                <Box>
+                  <Heading size='md'>{post.title}</Heading>
+                  <Text my='2'>Author: {post.author.username} </Text>
+                  <Text>{post.textSnippet}</Text>
+                </Box>
+              </Flex>
             </Card>
           ))}
         </Stack>
