@@ -1,7 +1,11 @@
 import { ChevronUpIcon, ChevronDownIcon } from '@chakra-ui/icons';
 import { Flex, IconButton } from '@chakra-ui/react';
 import React from 'react';
-import { GetPaginatedPostsQuery, VoteDocument } from '../codegen/graphql';
+import {
+  GetPaginatedPostsQuery,
+  VoteDocument,
+  VoteMutationVariables,
+} from '../codegen/graphql';
 import { useMutation } from 'urql';
 
 interface VoteSectionProps {
@@ -10,6 +14,9 @@ interface VoteSectionProps {
 
 const VoteSection: React.FC<VoteSectionProps> = ({ post }) => {
   const [, vote] = useMutation(VoteDocument);
+  const [loadingState, setLoadingState] = React.useState<
+    'upvote-loading' | 'downvote-loading' | 'not-loading'
+  >('not-loading');
 
   return (
     <Flex
@@ -23,12 +30,15 @@ const VoteSection: React.FC<VoteSectionProps> = ({ post }) => {
         aria-label='Up Vote Post'
         size='md'
         icon={<ChevronUpIcon />}
-        onClick={() => {
-          vote({
+        onClick={async () => {
+          setLoadingState('upvote-loading');
+          await vote({
             postId: post.id,
             voteValue: 1,
           });
+          setLoadingState('not-loading');
         }}
+        isLoading={loadingState === 'upvote-loading'}
       />
       {post.totalPoints}
       <IconButton
@@ -36,12 +46,15 @@ const VoteSection: React.FC<VoteSectionProps> = ({ post }) => {
         aria-label='Down Vote Post'
         size='md'
         icon={<ChevronDownIcon />}
-        onClick={() => {
-          vote({
+        onClick={async () => {
+          setLoadingState('downvote-loading');
+          await vote({
             postId: post.id,
             voteValue: -1,
           });
+          setLoadingState('not-loading');
         }}
+        isLoading={loadingState === 'downvote-loading'}
       />
     </Flex>
   );
