@@ -28,7 +28,7 @@
 # }
 
 query GetPaginatedPosts($cursor: String, $limit: Int) {
-  posts(input: { cursor: $cursor, limit: 1 }) {
+  posts(input: { cursor: $cursor, limit: $limit }) {
     posts {
       id
       createdAt
