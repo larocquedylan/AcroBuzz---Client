@@ -1,13 +1,16 @@
 import { ChevronUpIcon, ChevronDownIcon } from '@chakra-ui/icons';
 import { Flex, IconButton } from '@chakra-ui/react';
 import React from 'react';
-import { GetPaginatedPostsQuery } from '../codegen/graphql';
+import { GetPaginatedPostsQuery, VoteDocument } from '../codegen/graphql';
+import { useMutation } from 'urql';
 
 interface VoteSectionProps {
   post: GetPaginatedPostsQuery['posts']['posts'][0];
 }
 
 const VoteSection: React.FC<VoteSectionProps> = ({ post }) => {
+  const [, vote] = useMutation(VoteDocument);
+
   return (
     <Flex
       direction='column'
@@ -20,7 +23,12 @@ const VoteSection: React.FC<VoteSectionProps> = ({ post }) => {
         aria-label='Up Vote Post'
         size='md'
         icon={<ChevronUpIcon />}
-        onClick={() => console.log('yo')}
+        onClick={() => {
+          vote({
+            postId: post.id,
+            voteValue: 1,
+          });
+        }}
       />
       {post.totalPoints}
       <IconButton
@@ -28,7 +36,12 @@ const VoteSection: React.FC<VoteSectionProps> = ({ post }) => {
         aria-label='Down Vote Post'
         size='md'
         icon={<ChevronDownIcon />}
-        onClick={() => console.log('no')}
+        onClick={() => {
+          vote({
+            postId: post.id,
+            voteValue: -1,
+          });
+        }}
       />
     </Flex>
   );
