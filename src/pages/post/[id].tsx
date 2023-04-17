@@ -35,9 +35,8 @@ const Post = ({}) => {
   return (
     <Layout>
       <Heading>{data?.post?.title}</Heading>
-      <Box>{data?.post?.text}</Box>
       <div> {data?.post?.author.username}</div>
-      <div> {data?.post?.totalPoints}</div>
+      <Box>{data?.post?.text}</Box>
       <div> {data?.post?.createdAt}</div>
     </Layout>
   );
