@@ -1,12 +1,25 @@
-import { Box, Card, Flex, Heading, Stack, Text } from '@chakra-ui/react';
+import {
+  Box,
+  Card,
+  Flex,
+  Heading,
+  IconButton,
+  Stack,
+  Text,
+} from '@chakra-ui/react';
 import { withUrqlClient } from 'next-urql';
 import NextLink from 'next/link';
 import { useEffect, useState } from 'react';
-import { useQuery } from 'urql';
-import { Exact, GetPaginatedPostsDocument } from '../codegen/graphql';
+import { useMutation, useQuery } from 'urql';
+import {
+  DeletePostDocument,
+  Exact,
+  GetPaginatedPostsDocument,
+} from '../codegen/graphql';
 import Layout from '../components/Layout';
 import VoteSection from '../components/VoteSection';
 import { createUrqlClient } from '../utils/createUrqlClient';
+import { DeleteIcon } from '@chakra-ui/icons';
 
 const Index = () => {
   const [variables, setVariables] = useState<
@@ -16,6 +29,8 @@ const Index = () => {
     query: GetPaginatedPostsDocument,
     variables,
   });
+
+  const [, deleteFunc] = useMutation(DeletePostDocument);
 
   const [allPosts, setAllPosts] = useState([]);
 
@@ -53,6 +68,13 @@ const Index = () => {
                   <NextLink href='/post/[id]' as={`/post/${post.id}`}>
                     <Heading size='md'>{post.title}</Heading>
                   </NextLink>
+                  <IconButton
+                    aria-label='delete post'
+                    icon={<DeleteIcon />}
+                    onClick={() => {
+                      deleteFunc({ deletePostId: post.id });
+                    }}
+                  />
                   <Text my='2'>Author: {post.author.username} </Text>
                   <Text>{post.textSnippet}</Text>
                 </Box>
