@@ -1,24 +1,12 @@
-import {
-  Box,
-  Card,
-  CardBody,
-  CardHeader,
-  Flex,
-  Heading,
-  Link,
-  Stack,
-  Text,
-} from '@chakra-ui/react';
+import { Box, Card, Flex, Heading, Stack, Text } from '@chakra-ui/react';
 import { withUrqlClient } from 'next-urql';
 import NextLink from 'next/link';
 import { useEffect, useState } from 'react';
 import { useQuery } from 'urql';
 import { Exact, GetPaginatedPostsDocument } from '../codegen/graphql';
 import Layout from '../components/Layout';
-import { createUrqlClient } from '../utils/createUrqlClient';
-import { IconButton } from '@chakra-ui/react';
-import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
 import VoteSection from '../components/VoteSection';
+import { createUrqlClient } from '../utils/createUrqlClient';
 
 const Index = () => {
   const [variables, setVariables] = useState<
@@ -53,21 +41,18 @@ const Index = () => {
 
   return (
     <Layout>
-      <NextLink href={'/create-post'}>
-        <Box alignSelf={`Center`}>create post</Box>
-      </NextLink>
-
-      <br />
       {!data && fetching ? (
         <p>loading.. </p>
       ) : (
-        <Stack spacing='6'>
+        <Stack spacing='6' maxW={800}>
           {allPosts.map((post) => (
             <Card key={post.id} variant={'elevated'} padding={8}>
               <Flex>
                 <VoteSection post={post} />
                 <Box>
-                  <Heading size='md'>{post.title}</Heading>
+                  <NextLink href='/post/[id]' as={`/post/${post.id}`}>
+                    <Heading size='md'>{post.title}</Heading>
+                  </NextLink>
                   <Text my='2'>Author: {post.author.username} </Text>
                   <Text>{post.textSnippet}</Text>
                 </Box>

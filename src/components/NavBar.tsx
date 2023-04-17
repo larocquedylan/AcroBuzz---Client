@@ -1,4 +1,4 @@
-import { MoonIcon, SunIcon } from '@chakra-ui/icons';
+import { MoonIcon, PlusSquareIcon, SunIcon } from '@chakra-ui/icons';
 import {
   Avatar,
   Box,
@@ -17,6 +17,7 @@ import {
   useDisclosure,
 } from '@chakra-ui/react';
 import { withUrqlClient } from 'next-urql';
+import NextLink from 'next/link';
 import { ReactNode, useEffect, useState } from 'react';
 import { useMutation, useQuery } from 'urql';
 import { LogoutDocument, MeDocument, MeQuery } from '../codegen/graphql';
@@ -129,22 +130,42 @@ function NavBar({ pageProps }: NavBarProps) {
   return (
     <>
       <Box bg={useColorModeValue('gray.100', 'gray.900')} px={4}>
-        <Flex h={20} alignItems={'center'} justifyContent={'space-between'}>
+        <Flex
+          h={20}
+          maxW={800}
+          m='auto'
+          alignItems={'center'}
+          justifyContent={'space-between'}
+        >
           <Box
             color={'orange'}
             fontSize='24px'
             fontWeight={'bold'}
             fontFamily={'roboto'}
           >
-            Acro Buzz
+            <NextLink href='/'>Acro Buzz</NextLink>
           </Box>
-
           <Flex alignItems={'center'}>
             <Stack direction={'row'} spacing={7}>
-              <Button onClick={toggleColorMode}>
+              <Button
+                as={NextLink}
+                href='/create-post'
+                _hover={{
+                  transform: 'translateY(-5px)',
+                  boxShadow: 'lg',
+                }}
+              >
+                {<PlusSquareIcon />}
+              </Button>
+              <Button
+                onClick={toggleColorMode}
+                _hover={{
+                  transform: 'translateY(-5px)',
+                  boxShadow: 'lg',
+                }}
+              >
                 {colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
               </Button>
-
               <Menu>{body}</Menu>
             </Stack>
           </Flex>

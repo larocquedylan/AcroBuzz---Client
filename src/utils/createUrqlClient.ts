@@ -1,12 +1,17 @@
 import { cacheExchange } from '@urql/exchange-graphcache';
+import inspectFields from '@urql/exchange-graphcache';
 import router from 'next/router';
 import { Exchange, fetchExchange } from 'urql';
+import { gql } from '@urql/core';
 import { pipe, tap } from 'wonka';
 import {
+  GetPaginatedPostsDocument,
+  GetPaginatedPostsQuery,
   LoginMutation,
   MeDocument,
   MeQuery,
   RegisterMutation,
+  VoteMutationVariables,
 } from '../codegen/graphql';
 import { betterUpdateQuery } from './betterUpdateQuery';
 import { isServerSide } from './isServerSide';
@@ -48,7 +53,56 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
     exchanges: [
       cacheExchange({
         updates: {
+          keys: {
+            PaginatedPosts: () => null, // Add this line
+          },
           Mutation: {
+            vote: (_result, args, cache, info) => {
+              console.log('🚀 ~ Vote args:', args);
+
+              const allFields = cache.inspectFields('Query');
+              console.log(
+                '🚀 ~ file: createUrqlClient.ts:56 ~ createUrqlClient ~ allFields:',
+                allFields
+              );
+
+              const { postId, voteValue } = args as VoteMutationVariables;
+
+              // Log the cache contents
+              const cacheData = cache.resolve(
+                { __typename: 'Post', id: postId },
+                'totalPoints'
+              );
+              console.log('🚀 ~ Cache data:', cacheData);
+
+              const postCacheData = cache.readFragment(
+                gql`
+                  fragment _ on Post {
+                    id
+                    totalPoints
+                  }
+                `,
+                { id: postId }
+              ) as { id: number; totalPoints: number } | null;
+
+              console.log(
+                '🚀 ~ file: createUrqlClient.ts:64 ~ createUrqlClient ~ postCacheData:',
+                postCacheData
+              );
+
+              if (postCacheData) {
+                const updatedPoints = postCacheData.totalPoints + voteValue;
+                cache.writeFragment(
+                  gql`
+                    fragment _ on Post {
+                      totalPoints
+                    }
+                  `,
+                  { id: postId, totalPoints: updatedPoints }
+                );
+              }
+            },
+
             createPost: (_result, args, cache, info) => {
               const allFields = cache.inspectFields('Query');
               const postQueries = allFields.filter(
