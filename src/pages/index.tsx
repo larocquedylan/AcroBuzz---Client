@@ -64,14 +64,16 @@ const Index = () => {
         <Stack spacing='6'>
           {allPosts.map((post) => (
             <Card key={post.id} variant={'elevated'} padding={8}>
-              <Flex>
-                <VoteSection post={post} />
-                <Box>
-                  <Heading size='md'>{post.title}</Heading>
-                  <Text my='2'>Author: {post.author.username} </Text>
-                  <Text>{post.textSnippet}</Text>
-                </Box>
-              </Flex>
+              <NextLink href='/post/[id]' as={`/post/${post.id}`}>
+                <Flex>
+                  <VoteSection post={post} />
+                  <Box>
+                    <Heading size='md'>{post.title}</Heading>
+                    <Text my='2'>Author: {post.author.username} </Text>
+                    <Text>{post.textSnippet}</Text>
+                  </Box>
+                </Flex>
+              </NextLink>
             </Card>
           ))}
         </Stack>
