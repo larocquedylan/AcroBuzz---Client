@@ -1,10 +1,11 @@
-import { cacheExchange } from '@urql/exchange-graphcache';
+import { Resolver, cacheExchange } from '@urql/exchange-graphcache';
 import inspectFields from '@urql/exchange-graphcache';
 import router from 'next/router';
-import { Exchange, fetchExchange } from 'urql';
-import { gql } from '@urql/core';
+import { Exchange, fetchExchange, stringifyVariables } from 'urql';
+import { AnyVariables, TypedDocumentNode, gql } from '@urql/core';
 import { pipe, tap } from 'wonka';
 import {
+  Exact,
   GetPaginatedPostsDocument,
   GetPaginatedPostsQuery,
   LoginMutation,
@@ -30,6 +31,42 @@ const errorExchange: Exchange =
     );
   };
 
+const cursorPagination = (): Resolver => {
+  return (_parent, fieldArgs, cache, info) => {
+    const { parentKey: entityKey, fieldName } = info;
+    const allFields = cache.inspectFields(entityKey);
+    const fieldInfos = allFields.filter((info) => info.fieldName === fieldName);
+    const size = fieldInfos.length;
+    if (size === 0) {
+      return undefined;
+    }
+
+    const fieldKey = `${fieldName}(${stringifyVariables(fieldArgs)})`;
+    const isItInTheCache = cache.resolve(
+      cache.resolve(entityKey, fieldKey) as string,
+      'posts'
+    );
+    info.partial = !isItInTheCache;
+    let hasMore = true;
+    const results: string[] = [];
+    fieldInfos.forEach((fi) => {
+      const key = cache.resolve(entityKey, fi.fieldKey) as string;
+      const data = cache.resolve(key, 'posts') as string[];
+      const _hasMore = cache.resolve(key, 'hasMore');
+      if (!_hasMore) {
+        hasMore = _hasMore as boolean;
+      }
+      results.push(...data);
+    });
+
+    return {
+      __typename: 'PaginatedPosts',
+      hasMore,
+      posts: results,
+    };
+  };
+};
+
 export const createUrqlClient = (ssrExchange: any, ctx: any) => {
   let cookie = '';
   if (isServerSide) {
@@ -41,6 +78,7 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
     fetchOptions() {
       if (isServerSide && ctx?.req?.headers?.cookie) {
         return {
+          credentials: 'include' as const,
           headers: {
             cookie: ctx.req.headers.cookie,
           },
@@ -52,12 +90,55 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
     },
     exchanges: [
       cacheExchange({
-        updates: {
-          keys: {
-            PaginatedPosts: () => null, // Add this line
+        keys: {
+          PaginatedPosts: () => null,
+        },
+        resolvers: {
+          Query: {
+            posts: cursorPagination(),
           },
+        },
+        updates: {
           Mutation: {
-            vote: (_result, args, cache, info) => {
+            deletePost: (
+              _result: any,
+              args: any,
+              cache: {
+                invalidate: (arg0: { __typename: string; id: any }) => void;
+              },
+              info: any
+            ) => {
+              try {
+                cache.invalidate({
+                  __typename: 'Post',
+                  id: (args as any).id,
+                });
+                console.log('Cache update successful');
+              } catch (error) {
+                console.error('Cache update failed:', error);
+              }
+            },
+
+            vote: (
+              _result: any,
+              args: Exact<{ voteValue: number; postId: number }>,
+              cache: {
+                inspectFields: (arg0: string) => any;
+                resolve: (
+                  arg0: { __typename: string; id: number },
+                  arg1: string
+                ) => any;
+                readFragment: (
+                  arg0: TypedDocumentNode<any, AnyVariables>,
+                  arg1: { id: number }
+                ) => { id: number; totalPoints: number };
+                writeFragment: (
+                  arg0: TypedDocumentNode<any, AnyVariables>,
+                  arg1: { id: number; totalPoints: number }
+                ) => void;
+              },
+              info: any
+            ) => {
               console.log('🚀 ~ Vote args:', args);
 
               const allFields = cache.inspectFields('Query');
@@ -103,16 +184,40 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
               }
             },
 
-            createPost: (_result, args, cache, info) => {
+            createPost: (
+              _result: any,
+              args: any,
+              cache: {
+                inspectFields: (arg0: string) => any;
+                invalidate: (arg0: string, arg1: string, arg2: any) => void;
+              },
+              info: any
+            ) => {
+              // const allFields = cache.inspectFields('Query');
+              // console.log(allFields);
+              // const postQueries = allFields.filter(
+              //   ({ fieldName }) => fieldName === 'posts'
+              // );
+              // console.log(postQueries);
+              // postQueries.forEach(({ arguments: queryArgs }) => {
+              //   cache.invalidate('Query', 'posts', queryArgs);
+              // });
               const allFields = cache.inspectFields('Query');
-              const postQueries = allFields.filter(
-                ({ fieldName }) => fieldName === 'posts'
+              console.log(allFields);
+              const fieldInfos = allFields.filter(
+                (info) => info.fieldName === 'posts'
               );
-              postQueries.forEach(({ arguments: queryArgs }) => {
-                cache.invalidate('Query', 'posts', queryArgs);
+              console.log(fieldInfos);
+              fieldInfos.forEach((fi) => {
+                cache.invalidate('Query', 'posts', fi.arguments || {});
               });
             },
-            logout: (_result, args, cache, info) => {
+            logout: (
+              _result: any,
+              args: any,
+              cache: inspectFields.Cache,
+              info: any
+            ) => {
               betterUpdateQuery<LoginMutation, MeQuery>(
                 cache,
                 { query: MeDocument },
@@ -120,7 +225,12 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
                 () => ({ me: null })
               );
             },
-            login: (_result, args, cache, info) => {
+            login: (
+              _result: any,
+              args: any,
+              cache: inspectFields.Cache,
+              info: any
+            ) => {
               betterUpdateQuery<LoginMutation, MeQuery>(
                 cache,
                 { query: MeDocument },
@@ -136,7 +246,12 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
                 }
               );
             },
-            register: (_result, args, cache, info) => {
+            register: (
+              _result: any,
+              args: any,
+              cache: inspectFields.Cache,
+              info: any
+            ) => {
               betterUpdateQuery<RegisterMutation, MeQuery>(
                 cache,
                 { query: MeDocument },
@@ -155,6 +270,7 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
           },
         },
       }),
+
       errorExchange,
       ssrExchange,
       fetchExchange,
