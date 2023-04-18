@@ -7,12 +7,12 @@ query GetPaginatedPosts($cursor: String, $limit: Int) {
       updatedAt
       title
       textSnippet
+      text
+      totalPoints
       author {
         id
         username
       }
-      text
-      totalPoints
     }
     nextCursor
   }
