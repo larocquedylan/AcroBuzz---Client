@@ -15,16 +15,22 @@ import {
   DeletePostDocument,
   Exact,
   GetPaginatedPostsDocument,
+  MeDocument,
 } from '../codegen/graphql';
 import Layout from '../components/Layout';
 import VoteSection from '../components/VoteSection';
 import { createUrqlClient } from '../utils/createUrqlClient';
-import { DeleteIcon } from '@chakra-ui/icons';
+import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 
 const Index = () => {
   const [variables, setVariables] = useState<
     Exact<{ cursor?: string; limit?: number }>
   >({ limit: 10 });
+
+  const [{ data: meData }] = useQuery({
+    query: MeDocument,
+  });
+
   const [{ data, fetching }] = useQuery({
     query: GetPaginatedPostsDocument,
     variables,
@@ -64,17 +70,39 @@ const Index = () => {
             <Card key={post.id} variant={'elevated'} padding={8}>
               <Flex>
                 <VoteSection post={post} />
-                <Box>
-                  <NextLink href='/post/[id]' as={`/post/${post.id}`}>
-                    <Heading size='md'>{post.title}</Heading>
-                  </NextLink>
-                  <IconButton
-                    aria-label='delete post'
-                    icon={<DeleteIcon />}
-                    onClick={() => {
-                      deleteFunc({ deletePostId: post.id });
-                    }}
-                  />
+                <Box flex={1}>
+                  <Flex
+                    direction={'row'}
+                    width={'max'}
+                    justifyContent={'space-between'}
+                  >
+                    <NextLink href='/post/[id]' as={`/post/${post.id}`}>
+                      <Heading size='md' width={'max'} mr={'max'}>
+                        {post.title}
+                      </Heading>
+                    </NextLink>
+                    {meData?.me?.userId !== post.author.id ? null : (
+                      <Box ml={'max'}>
+                        <NextLink
+                          href='/post/edit/[id]'
+                          as={`/post/edit/${post.id}`}
+                        >
+                          <IconButton
+                            aria-label='edit post'
+                            icon={<EditIcon />}
+                          />
+                        </NextLink>
+                        <IconButton
+                          aria-label='delete post'
+                          ml={4}
+                          icon={<DeleteIcon />}
+                          onClick={() => {
+                            deleteFunc({ deletePostId: post.id });
+                          }}
+                        />
+                      </Box>
+                    )}
+                  </Flex>
                   <Text my='2'>Author: {post.author.username} </Text>
                   <Text>{post.textSnippet}</Text>
                 </Box>
