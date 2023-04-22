@@ -100,90 +100,20 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
         },
         updates: {
           Mutation: {
-            deletePost: (
-              _result: any,
-              args: any,
-              cache: {
-                invalidate: (arg0: { __typename: string; id: any }) => void;
-              },
-              info: any
-            ) => {
-              try {
-                cache.invalidate({
-                  __typename: 'Post',
-                  id: (args as any).id,
-                });
-                console.log('Cache update successful');
-              } catch (error) {
-                console.error('Cache update failed:', error);
-              }
-            },
-
-            vote: (
-              _result: any,
-              args: Exact<{ voteValue: number; postId: number }>,
-              cache: {
-                inspectFields: (arg0: string) => any;
-                resolve: (
-                  arg0: { __typename: string; id: number },
-                  arg1: string
-                ) => any;
-                readFragment: (
-                  arg0: TypedDocumentNode<any, AnyVariables>,
-                  arg1: { id: number }
-                ) => { id: number; totalPoints: number };
-                writeFragment: (
-                  arg0: TypedDocumentNode<any, AnyVariables>,
-                  arg1: { id: number; totalPoints: number }
-                ) => void;
-              },
-              info: any
-            ) => {
-              console.log('🚀 ~ Vote args:', args);
-
+            deletePost: (_result, args, cache, _info) => {
               const allFields = cache.inspectFields('Query');
-              console.log(
-                '🚀 ~ file: createUrqlClient.ts:56 ~ createUrqlClient ~ allFields:',
-                allFields
+              const postFields = allFields.filter(
+                (field) => field.fieldName === 'posts'
               );
 
-              const { postId, voteValue } = args as VoteMutationVariables;
-
-              // Log the cache contents
-              const cacheData = cache.resolve(
-                { __typename: 'Post', id: postId },
-                'totalPoints'
-              );
-              console.log('🚀 ~ Cache data:', cacheData);
-
-              const postCacheData = cache.readFragment(
-                gql`
-                  fragment _ on Post {
-                    id
-                    totalPoints
-                  }
-                `,
-                { id: postId }
-              ) as { id: number; totalPoints: number } | null;
-
-              console.log(
-                '🚀 ~ file: createUrqlClient.ts:64 ~ createUrqlClient ~ postCacheData:',
-                postCacheData
-              );
-
-              if (postCacheData) {
-                const updatedPoints = postCacheData.totalPoints + voteValue;
-                cache.writeFragment(
-                  gql`
-                    fragment _ on Post {
-                      totalPoints
-                    }
-                  `,
-                  { id: postId, totalPoints: updatedPoints }
-                );
-              }
+              postFields.forEach((field) => {
+                cache.invalidate('Query', 'posts', field.arguments);
+              });
             },
-
+            vote: (_result, args, cache, _info) => {
+              const { postId } = args as VoteMutationVariables;
+              cache.invalidate({ __typename: 'Post', id: postId });
+            },
             createPost: (
               _result: any,
               args: any,
@@ -193,15 +123,6 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
               },
               info: any
             ) => {
-              // const allFields = cache.inspectFields('Query');
-              // console.log(allFields);
-              // const postQueries = allFields.filter(
-              //   ({ fieldName }) => fieldName === 'posts'
-              // );
-              // console.log(postQueries);
-              // postQueries.forEach(({ arguments: queryArgs }) => {
-              //   cache.invalidate('Query', 'posts', queryArgs);
-              // });
               const allFields = cache.inspectFields('Query');
               console.log(allFields);
               const fieldInfos = allFields.filter(
@@ -212,6 +133,7 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
                 cache.invalidate('Query', 'posts', fi.arguments || {});
               });
             },
+
             logout: (
               _result: any,
               args: any,
@@ -225,6 +147,7 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
                 () => ({ me: null })
               );
             },
+
             login: (
               _result: any,
               args: any,
@@ -246,6 +169,7 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
                 }
               );
             },
+
             register: (
               _result: any,
               args: any,
