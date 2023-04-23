@@ -27,9 +27,16 @@ const Index = () => {
     Exact<{ cursor?: string; limit?: number }>
   >({ limit: 10 });
 
-  const [{ data: meData }] = useQuery({
+  const [{ data: meData }, reexecuteQuery] = useQuery({
     query: MeDocument,
+    requestPolicy: 'network-only',
   });
+
+  useEffect(() => {
+    reexecuteQuery();
+  }, []);
+
+  console.log(meData);
 
   const [{ data, fetching }] = useQuery({
     query: GetPaginatedPostsDocument,
@@ -81,7 +88,7 @@ const Index = () => {
                         {post.title}
                       </Heading>
                     </NextLink>
-                    {meData?.me?.userId !== post.author.id ? null : (
+                    {(meData?.me as any)?.userId !== post.author.id ? null : (
                       <Box ml={'max'}>
                         <NextLink
                           href='/post/edit/[id]'
