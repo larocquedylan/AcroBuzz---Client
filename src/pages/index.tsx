@@ -88,7 +88,7 @@ const Index = () => {
                         {post.title}
                       </Heading>
                     </NextLink>
-                    {(meData?.me as any)?.userId !== post.author.id ? null : (
+                    {(meData?.me as any)?.Id !== post.author.id ? null : (
                       <Box ml={'max'}>
                         <NextLink
                           href='/post/edit/[id]'
