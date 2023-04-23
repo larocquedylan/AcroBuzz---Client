@@ -1,11 +1,7 @@
 import { ChevronUpIcon, ChevronDownIcon } from '@chakra-ui/icons';
 import { Flex, IconButton } from '@chakra-ui/react';
 import React from 'react';
-import {
-  GetPaginatedPostsQuery,
-  VoteDocument,
-  VoteMutationVariables,
-} from '../codegen/graphql';
+import { GetPaginatedPostsQuery, VoteDocument } from '../codegen/graphql';
 import { useMutation } from 'urql';
 
 interface VoteSectionProps {
