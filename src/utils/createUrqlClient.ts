@@ -1,8 +1,8 @@
-import { Resolver, cacheExchange } from '@urql/exchange-graphcache';
+import { Resolver, cacheExchange, Cache } from '@urql/exchange-graphcache';
 import inspectFields from '@urql/exchange-graphcache';
 import router from 'next/router';
 import { Exchange, fetchExchange, stringifyVariables } from 'urql';
-import { AnyVariables, TypedDocumentNode, gql } from '@urql/core';
+import { AnyVariables, gql } from '@urql/core';
 import { pipe, tap } from 'wonka';
 import {
   Exact,
@@ -11,6 +11,7 @@ import {
   LoginMutation,
   MeDocument,
   MeQuery,
+  PaginatedPosts,
   RegisterMutation,
   VoteMutationVariables,
 } from '../codegen/graphql';
@@ -67,6 +68,14 @@ const cursorPagination = (): Resolver => {
   };
 };
 
+function invalidateAllPosts(cache: Cache) {
+  const allFields = cache.inspectFields('Query');
+  const fieldInfos = allFields.filter((info) => info.fieldName === 'posts');
+  fieldInfos.forEach((fi) => {
+    cache.invalidate('Query', 'posts', fi.arguments || {});
+  });
+}
+
 export const createUrqlClient = (ssrExchange: any, ctx: any) => {
   let cookie = '';
   if (isServerSide) {
@@ -75,18 +84,13 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
 
   return {
     url: process.env.NEXT_PUBLIC_API_URL,
-    fetchOptions() {
-      if (isServerSide && ctx?.req?.headers?.cookie) {
-        return {
-          credentials: 'include' as const,
-          headers: {
-            cookie: ctx.req.headers.cookie,
-          },
-        };
-      }
-      return {
-        credentials: 'include' as const,
-      };
+    fetchOptions: {
+      credentials: 'include' as const,
+      headers: cookie
+        ? {
+            cookie,
+          }
+        : undefined,
     },
     exchanges: [
       cacheExchange({
@@ -110,10 +114,162 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
                 cache.invalidate('Query', 'posts', field.arguments);
               });
             },
-            vote: (_result, args, cache, _info) => {
-              const { postId } = args as VoteMutationVariables;
-              cache.invalidate({ __typename: 'Post', id: postId });
+
+            vote: (result, args, cache) => {
+              const { postId, voteValue } = args as VoteMutationVariables;
+              console.log('Vote function called with postId:', postId);
+
+              const allFields = cache.inspectFields('Query');
+              const postFields = allFields.filter(
+                (field) => field.fieldName === 'posts'
+              );
+
+              console.log('All fields:', allFields);
+
+              postFields.forEach((field) => {
+                console.log('Field:', field);
+                const currentData = cache.readQuery<GetPaginatedPostsQuery>({
+                  query: GetPaginatedPostsDocument,
+                  variables: field.arguments,
+                });
+
+                console.log(currentData);
+
+                if (currentData?.posts?.posts) {
+                  const updatedPosts = currentData.posts.posts.map((post) => {
+                    if (post.id === postId) {
+                      console.log('Updating totalPoints for postId:', postId);
+                      return {
+                        ...post,
+                        totalPoints: post.totalPoints + voteValue,
+                      };
+                    }
+                    return post;
+                  });
+
+                  console.log('Updated posts:', updatedPosts);
+
+                  cache.updateQuery(
+                    {
+                      query: GetPaginatedPostsDocument,
+                      variables: field.arguments,
+                    },
+                    (data: GetPaginatedPostsQuery | null) => {
+                      if (!data) {
+                        console.log(
+                          'Data not found in cache for fieldKey:',
+                          field.fieldKey
+                        );
+                        return null;
+                      }
+
+                      return {
+                        ...data,
+                        posts: {
+                          ...data.posts,
+                          posts: updatedPosts,
+                        },
+                      };
+                    }
+                  );
+                }
+              });
+
+              console.log('Vote update function complete');
             },
+
+            // vote: (_result, args, cache, _info) => {
+            //   const { postId, value } = args as VoteMutationVariables;
+
+            //   // const { postId } = args as VoteMutationVariables;
+            //   console.log('Vote function called with postId:', postId);
+
+            //   const data = cache.readQuery<GetPaginatedPostsQuery>({
+            //     query: GetPaginatedPostsDocument,
+            //     // look for posts in the cache
+            //     variables: {
+            //       limit: 10,
+            //       cursor: null,
+            //     },
+            //   });
+            //   console.log('Initial data from cache:', data);
+
+            //   if (data?.posts?.posts) {
+            //     const updatedPosts = data.posts.posts.map((post) => {
+            //       if (post.id === postId) {
+            //         console.log('Updating totalPoints for postId:', postId);
+            //         return {
+            //           ...post,
+            //           totalPoints:
+            //             post.totalPoints + (args.voteValue as number),
+            //         };
+            //       }
+            //       return post;
+            //     });
+
+            //     console.log('Updated posts:', updatedPosts);
+            //     data.posts.posts = updatedPosts;
+
+            //     cache.writeQuery({ query: GetPaginatedPostsDocument, data });
+            //   }
+
+            //   console.log('Final data to be written to cache:', data);
+            // },
+
+            // vote: (_result: any, args: any, cache, _info: any) => {
+            //   const { postId, voteValue } = args as VoteMutationVariables;
+            //   console.log(
+            //     '🚀 ~ file: createUrqlClient.ts:115 ~ createUrqlClient ~ voteValue:',
+            //     voteValue
+            //   );
+            //   console.log(
+            //     '🚀 ~ file: createUrqlClient.ts:115 ~ createUrqlClient ~ postId:',
+            //     postId
+            //   );
+
+            //   // const data = cache.readFragment(
+            //   //   gql`
+            //   //     fragment _ on Post {
+            //   //       id
+            //   //       totalPoints
+            //   //       voteStatus
+            //   //     }
+            //   //   `,
+            //   //   { id: postId } as any
+            //   // );
+
+            //   console.log('start');
+            //   console.log(
+            //     'cache.inspect fields query',
+            //     cache.inspectFields('Query')
+            //   );
+            //   const allFields = cache.inspectFields('Query', 'posts', {
+            //     limit: 10,
+            //     cursor: null,
+            //   });
+            //   console.log(
+            //     '🚀 ~ file: createUrqlClient.ts:115 ~ createUrqlClient ~ allFields:',
+            //     allFields
+            //   );
+
+            //   const postFields = allFields.filter(
+            //     (field) => field.fieldName === 'posts'
+            //   );
+            //   console.log(
+            //     '🚀 ~ file: createUrqlClient.ts:120 ~ createUrqlClient ~ postFields:',
+            //     postFields
+            //   );
+
+            //   postFields.forEach((field) => {
+            //     cache.invalidate('__typename', 'Post');
+            //   });
+            //   console.log(
+            //     'cache.inspect fields query',
+            //     cache.inspectFields('Query')
+            //   );
+            //   console.log('end');
+            // },
+
             createPost: (
               _result: any,
               args: any,
@@ -124,11 +280,9 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
               info: any
             ) => {
               const allFields = cache.inspectFields('Query');
-              console.log(allFields);
               const fieldInfos = allFields.filter(
                 (info) => info.fieldName === 'posts'
               );
-              console.log(fieldInfos);
               fieldInfos.forEach((fi) => {
                 cache.invalidate('Query', 'posts', fi.arguments || {});
               });
