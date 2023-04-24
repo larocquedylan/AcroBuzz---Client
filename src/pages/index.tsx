@@ -12,13 +12,13 @@ import NextLink from 'next/link';
 import { useEffect, useState } from 'react';
 import {
   Exact,
+  GetPaginatedPostsQuery,
   useDeletePostMutation,
   useGetPaginatedPostsQuery,
   useMeQuery,
 } from '../codegen/graphql';
 import Layout from '../components/Layout';
 import VoteSection from '../components/VoteSection';
-import { cursorTo } from 'readline';
 
 const Index = () => {
   const { data: meData } = useMeQuery();
@@ -47,14 +47,6 @@ const Index = () => {
       });
     }
   }, [data]);
-
-  // const loadMorePosts = () => {
-  //   if (data && data.posts.nextCursor) {
-  //     fetchMore({
-  //       variables: { cursor: data.posts.nextCursor, limit: 10 },
-  //     });
-  //   }
-  // };
 
   return (
     <Layout>
@@ -117,6 +109,26 @@ const Index = () => {
                 limit: variables?.limit,
                 cursor: data.posts.nextCursor,
               },
+              updateQuery: (
+                previousQueryResult: GetPaginatedPostsQuery,
+                { fetchMoreResult }
+              ) => {
+                if (!fetchMoreResult) {
+                  return previousQueryResult;
+                } else {
+                  return {
+                    ...previousQueryResult,
+                    posts: {
+                      __typename: previousQueryResult.posts.__typename,
+                      nextCursor: fetchMoreResult.posts.nextCursor,
+                      posts: [
+                        ...previousQueryResult.posts.posts,
+                        ...fetchMoreResult.posts.posts,
+                      ],
+                    },
+                  };
+                }
+              },
             });
           }}
         >
@@ -128,6 +140,3 @@ const Index = () => {
 };
 
 export default Index;
-function fetchMore(arg0: { variables: { cursor: any; limit: number } }) {
-  throw new Error('Function not implemented.');
-}
