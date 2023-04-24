@@ -7,6 +7,7 @@ import {
   IconButton,
   Stack,
   Text,
+  Spinner,
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { useEffect, useState } from 'react';
@@ -33,21 +34,7 @@ const Index = () => {
 
   const [deletePost] = useDeletePostMutation();
 
-  const [allPosts, setAllPosts] = useState([]);
-
-  useEffect(() => {
-    if (data && data.posts.posts) {
-      setAllPosts((prevPosts) => {
-        // Merge the previous and new data
-        const combinedPosts = [...prevPosts, ...data.posts.posts];
-        // Remove duplicates
-        return combinedPosts.filter(
-          (post, index, self) =>
-            self.findIndex((p) => p.id === post.id) === index
-        );
-      });
-    }
-  }, [data]);
+  const isLoadingMore = loading && data;
 
   return (
     <Layout>
@@ -55,7 +42,7 @@ const Index = () => {
         <p>loading.. </p>
       ) : (
         <Stack spacing='6' maxW={800}>
-          {allPosts.map((post) => (
+          {data.posts.posts.map((post) => (
             <Card key={post.id} variant={'elevated'} padding={8}>
               <Flex>
                 <VoteSection post={post} />
@@ -110,30 +97,10 @@ const Index = () => {
                 limit: variables?.limit,
                 cursor: data.posts.nextCursor,
               },
-              updateQuery: (
-                previousQueryResult: GetPaginatedPostsQuery,
-                { fetchMoreResult }
-              ) => {
-                if (!fetchMoreResult) {
-                  return previousQueryResult;
-                } else {
-                  return {
-                    ...previousQueryResult,
-                    posts: {
-                      __typename: previousQueryResult.posts.__typename,
-                      nextCursor: fetchMoreResult.posts.nextCursor,
-                      posts: [
-                        ...previousQueryResult.posts.posts,
-                        ...fetchMoreResult.posts.posts,
-                      ],
-                    },
-                  };
-                }
-              },
             });
           }}
         >
-          Load More
+          Load more
         </button>
       )}
     </Layout>
