@@ -49,22 +49,24 @@ const Index = () => {
       ) : (
         <Stack spacing='6' maxW={800}>
           {data.posts.posts.map((post) => (
-            <Card key={post.id} variant={'elevated'} padding={8}>
+            <Card
+              key={post.id}
+              variant={'elevated'}
+              padding={8}
+              borderColor='gray.300'
+              boxShadow='md'
+            >
               <Flex>
                 <VoteSection post={post} />
                 <Box flex={1}>
-                  <Flex
-                    direction={'row'}
-                    width={'max'}
-                    justifyContent={'space-between'}
-                  >
+                  <Flex justifyContent={'space-between'}>
                     <NextLink href='/post/[id]' as={`/post/${post.id}`}>
                       <Heading size='md' width={'max'} mr={'max'}>
                         {post.title}
                       </Heading>
                     </NextLink>
                     {meData?.me?.id !== post.author.id ? null : (
-                      <Box ml={'max'}>
+                      <Box>
                         <NextLink
                           href='/post/edit/[id]'
                           as={`/post/edit/${post.id}`}
