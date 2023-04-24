@@ -1,5 +1,5 @@
 import { Button } from '@chakra-ui/button';
-import { Box } from '@chakra-ui/react';
+import { Box, Center } from '@chakra-ui/react';
 import { Form, Formik } from 'formik';
 import { useRouter } from 'next/router';
 import React from 'react';
@@ -55,11 +55,11 @@ const Register: React.FC<registerProps> = ({}: registerProps) => {
         )}
       </Formik>
       {/* link to login page */}
-      <Box mt={4} mx={`auto`}>
+      <Center mt={4} mx={`auto`}>
         <Button colorScheme='orange' onClick={() => router.push('/login')}>
-          Login
+          Login into your account
         </Button>
-      </Box>
+      </Center>
     </Wrapper>
   );
 };
