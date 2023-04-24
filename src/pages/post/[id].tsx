@@ -1,23 +1,27 @@
-import { withUrqlClient } from 'next-urql';
-import React from 'react';
-import { createUrqlClient } from '../../utils/createUrqlClient';
 import { useRouter } from 'next/router';
-import { useMutation, useQuery } from 'urql';
-import { DeletePostDocument, PostDocument } from '../../codegen/graphql';
+import React from 'react';
 import Layout from '../../components/Layout';
-import { Box, Flex, Heading, IconButton } from '@chakra-ui/react';
-import { DeleteIcon } from '@chakra-ui/icons';
+import { Box, Card, Flex, Heading, IconButton } from '@chakra-ui/react';
+import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
+import {
+  useDeletePostMutation,
+  useMeQuery,
+  usePostQuery,
+} from '../../codegen/graphql';
+import NextLink from 'next/link';
 
 const Post = ({}) => {
   const router = useRouter();
-  const [{ data, error, fetching }] = useQuery({
-    query: PostDocument,
+
+  const { data: meData } = useMeQuery();
+
+  const { data, error, loading } = usePostQuery({
     variables: {
       id: parseInt(router.query.id as string),
     },
   });
 
-  const [, deleteFunc] = useMutation(DeletePostDocument);
+  const [deletePost] = useDeletePostMutation();
 
   if (error) {
     return (
@@ -27,7 +31,7 @@ const Post = ({}) => {
     );
   }
 
-  if (fetching) {
+  if (loading) {
     return (
       <Layout>
         <div>loading...</div>
@@ -37,21 +41,34 @@ const Post = ({}) => {
 
   return (
     <Layout>
-      <Heading>{data?.post?.title}</Heading>
-      <div> {data?.post?.author.username}</div>
-      <Box>{data?.post?.text}</Box>
-      <div> {data?.post?.createdAt}</div>
-      <Flex>
-        <IconButton
-          aria-label='delete post'
-          icon={<DeleteIcon />}
-          onClick={() => {
-            deleteFunc({ deletePostId: data?.post?.id });
-          }}
-        />
-      </Flex>
+      <Card variant={'elevated'} padding={8}>
+        <Heading>{data?.post?.title}</Heading>
+        <div> {data?.post?.author.username}</div>
+        <Box mt={2}>{data?.post?.text}</Box>
+        <div> {data?.post?.createdAt}</div>
+        {meData?.me?.id !== data?.post?.author.id ? null : (
+          <Box mt={2}>
+            <NextLink
+              href='/post/edit/[id]'
+              as={`/post/edit/${data?.post?.id}`}
+            >
+              <IconButton aria-label='edit post' icon={<EditIcon />} />
+            </NextLink>
+            <IconButton
+              aria-label='delete post'
+              ml={4}
+              icon={<DeleteIcon />}
+              onClick={() => {
+                deletePost({
+                  variables: { deletePostId: data?.post?.id },
+                });
+              }}
+            />
+          </Box>
+        )}
+      </Card>
     </Layout>
   );
 };
 
-export default withUrqlClient(createUrqlClient, { ssr: true })(Post);
+export default Post;

@@ -1,19 +1,46 @@
-import { ChevronUpIcon, ChevronDownIcon } from '@chakra-ui/icons';
+import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
 import { Flex, IconButton } from '@chakra-ui/react';
-import React from 'react';
+import React, { useState } from 'react';
 import {
+  GetPaginatedPostsDocument,
   GetPaginatedPostsQuery,
-  VoteDocument,
-  VoteMutationVariables,
+  useVoteMutation,
 } from '../codegen/graphql';
-import { useMutation } from 'urql';
 
 interface VoteSectionProps {
   post: GetPaginatedPostsQuery['posts']['posts'][0];
 }
 
 const VoteSection: React.FC<VoteSectionProps> = ({ post }) => {
-  const [, vote] = useMutation(VoteDocument);
+  const [userVote, setUserVote] = useState(0);
+  const [vote, { data, loading, error }] = useVoteMutation({
+    refetchQueries: [
+      {
+        query: GetPaginatedPostsDocument,
+        variables: {
+          postId: post.id,
+        },
+      },
+    ],
+  });
+
+  const handleVote = async (voteValue: number) => {
+    if (loading) return;
+
+    if (
+      (voteValue === 1 && userVote < 2) ||
+      (voteValue === -1 && userVote > -2)
+    ) {
+      await vote({
+        variables: {
+          postId: post.id,
+          voteValue,
+        },
+      });
+      setUserVote(userVote + voteValue);
+    }
+  };
+
   const [loadingState, setLoadingState] = React.useState<
     'upvote-loading' | 'downvote-loading' | 'not-loading'
   >('not-loading');
@@ -30,15 +57,8 @@ const VoteSection: React.FC<VoteSectionProps> = ({ post }) => {
         aria-label='Up Vote Post'
         size='md'
         icon={<ChevronUpIcon />}
-        onClick={async () => {
-          setLoadingState('upvote-loading');
-          await vote({
-            postId: post.id,
-            voteValue: 1,
-          });
-          setLoadingState('not-loading');
-        }}
-        isLoading={loadingState === 'upvote-loading'}
+        onClick={async () => handleVote(1)}
+        isDisabled={userVote === 2}
       />
       {post.totalPoints}
       <IconButton
@@ -46,15 +66,8 @@ const VoteSection: React.FC<VoteSectionProps> = ({ post }) => {
         aria-label='Down Vote Post'
         size='md'
         icon={<ChevronDownIcon />}
-        onClick={async () => {
-          setLoadingState('downvote-loading');
-          await vote({
-            postId: post.id,
-            voteValue: -1,
-          });
-          setLoadingState('not-loading');
-        }}
-        isLoading={loadingState === 'downvote-loading'}
+        onClick={async () => handleVote(-1)}
+        isDisabled={userVote === -2}
       />
     </Flex>
   );

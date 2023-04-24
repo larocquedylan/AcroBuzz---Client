@@ -1,18 +1,14 @@
-import router from 'next/router';
+import { useRouter } from 'next/router';
 import { useEffect } from 'react';
-import { useQuery } from 'urql';
-import { MeDocument } from '../codegen/graphql';
+import { useMeQuery } from '../codegen/graphql';
 
 export const userIsAuth = () => {
-  const [{ data, fetching }] = useQuery({
-    query: MeDocument,
-  });
+  const { data, loading } = useMeQuery();
+  const router = useRouter();
 
   useEffect(() => {
-    if (!fetching && !data?.me) {
-      // If user is not auth, redirect to login page and then back to the page they were on after log in
-      // router.replace('/login?=next' + router.pathname);
+    if (!loading && !data?.me) {
       router.replace(`/login?next=${router.pathname}`);
     }
-  }, [data, fetching, router]);
+  }, [data, loading, router]);
 };

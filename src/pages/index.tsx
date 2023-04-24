@@ -1,88 +1,72 @@
+import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 import {
   Box,
+  Button,
   Card,
+  Center,
   Flex,
   Heading,
   IconButton,
+  Spinner,
   Stack,
   Text,
 } from '@chakra-ui/react';
-import { withUrqlClient } from 'next-urql';
 import NextLink from 'next/link';
-import { useEffect, useState } from 'react';
-import { useMutation, useQuery } from 'urql';
 import {
-  DeletePostDocument,
-  Exact,
   GetPaginatedPostsDocument,
-  MeDocument,
+  useDeletePostMutation,
+  useGetPaginatedPostsQuery,
+  useMeQuery,
 } from '../codegen/graphql';
 import Layout from '../components/Layout';
 import VoteSection from '../components/VoteSection';
-import { createUrqlClient } from '../utils/createUrqlClient';
-import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 
 const Index = () => {
-  const [variables, setVariables] = useState<
-    Exact<{ cursor?: string; limit?: number }>
-  >({ limit: 10 });
+  const { data: meData } = useMeQuery();
 
-  const [{ data: meData }] = useQuery({
-    query: MeDocument,
+  const { data, loading, fetchMore, variables } = useGetPaginatedPostsQuery({
+    variables: {
+      limit: 10,
+      cursor: null,
+    },
+    notifyOnNetworkStatusChange: true,
   });
 
-  const [{ data, fetching }] = useQuery({
-    query: GetPaginatedPostsDocument,
-    variables,
+  const [deletePost] = useDeletePostMutation({
+    refetchQueries: [
+      {
+        query: GetPaginatedPostsDocument,
+        variables: { limit: 10, cursor: null },
+      },
+    ],
   });
-
-  const [, deleteFunc] = useMutation(DeletePostDocument);
-
-  const [allPosts, setAllPosts] = useState([]);
-
-  useEffect(() => {
-    if (data && data.posts.posts) {
-      setAllPosts((prevPosts) => {
-        // Merge the previous and new data
-        const combinedPosts = [...prevPosts, ...data.posts.posts];
-        // Remove duplicates
-        return combinedPosts.filter(
-          (post, index, self) =>
-            self.findIndex((p) => p.id === post.id) === index
-        );
-      });
-    }
-  }, [data]);
-
-  const loadMorePosts = () => {
-    if (data && data.posts.nextCursor) {
-      setVariables({ cursor: data.posts.nextCursor, limit: 10 });
-    }
-  };
+  const isLoadingMore = loading && data;
 
   return (
     <Layout>
-      {!data && fetching ? (
+      {!data && loading ? (
         <p>loading.. </p>
       ) : (
         <Stack spacing='6' maxW={800}>
-          {allPosts.map((post) => (
-            <Card key={post.id} variant={'elevated'} padding={8}>
+          {data.posts.posts.map((post) => (
+            <Card
+              key={post.id}
+              variant={'elevated'}
+              padding={8}
+              borderColor='gray.300'
+              boxShadow='md'
+            >
               <Flex>
                 <VoteSection post={post} />
                 <Box flex={1}>
-                  <Flex
-                    direction={'row'}
-                    width={'max'}
-                    justifyContent={'space-between'}
-                  >
+                  <Flex justifyContent={'space-between'}>
                     <NextLink href='/post/[id]' as={`/post/${post.id}`}>
                       <Heading size='md' width={'max'} mr={'max'}>
                         {post.title}
                       </Heading>
                     </NextLink>
-                    {meData?.me?.userId !== post.author.id ? null : (
-                      <Box ml={'max'}>
+                    {meData?.me?.id !== post.author.id ? null : (
+                      <Box>
                         <NextLink
                           href='/post/edit/[id]'
                           as={`/post/edit/${post.id}`}
@@ -97,7 +81,9 @@ const Index = () => {
                           ml={4}
                           icon={<DeleteIcon />}
                           onClick={() => {
-                            deleteFunc({ deletePostId: post.id });
+                            deletePost({
+                              variables: { deletePostId: post.id },
+                            });
                           }}
                         />
                       </Box>
@@ -112,10 +98,29 @@ const Index = () => {
         </Stack>
       )}
       {data && data.posts.nextCursor && (
-        <button onClick={loadMorePosts}>Load More</button>
+        <Center mt={4} mb={4} padding={'2'}>
+          <Button
+            variant={'outline'}
+            colorScheme='orange'
+            _hover={{
+              transform: 'translateY(-5px)',
+              boxShadow: 'lg',
+            }}
+            onClick={() => {
+              fetchMore({
+                variables: {
+                  limit: variables?.limit,
+                  cursor: data.posts.nextCursor,
+                },
+              });
+            }}
+          >
+            {isLoadingMore ? <Spinner /> : 'Load more'}
+          </Button>
+        </Center>
       )}
     </Layout>
   );
 };
 
-export default withUrqlClient(createUrqlClient, { ssr: true })(Index);
+export default Index;

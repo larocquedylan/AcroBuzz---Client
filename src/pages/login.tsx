@@ -1,44 +1,113 @@
+// import React from 'react';
+// import { Formik, Field, Form } from 'formik';
+// import { Button } from '@chakra-ui/button';
+// import Wrapper from '../components/Wrapper';
+// import InputField from '../components/InputField';
+// import { Box } from '@chakra-ui/react';
+// import { useLoginMutation } from '../codegen/graphql';
+// import { toErrorMap } from '../utils/toErrorMap';
+// import { useRouter } from 'next/router';
+
+// const Login: React.FC<{}> = ({}) => {
+//   const [login] = useLoginMutation();
+//   const router = useRouter();
+
+//   return (
+//     <Wrapper variant='small'>
+//       <Formik
+//         initialValues={{ username: '', password: '' }}
+//         onSubmit={async (values, { setErrors }) => {
+//           const response = await login({ variables: values });
+
+//           if (response.data?.login.errors) {
+//             setErrors(toErrorMap(response.data.login.errors));
+//           } else if (response.data?.login.user) {
+//             if (typeof router.query.next === 'string') {
+//               router.push(router.query.next);
+//             } else {
+//               router.push('/');
+//             }
+//           }
+//         }}
+//       >
+//         {({ values }) => (
+//           <Box border='1px' p={8} rounded='md'>
+//             <Form>
+//               <InputField
+//                 name='username'
+//                 label='Username'
+//                 placeholder='username'
+//               />
+//               <Box mt={4}>
+//                 <InputField
+//                   name='password'
+//                   label='Password'
+//                   placeholder='password'
+//                   type='password'
+//                 />
+//               </Box>
+
+//               <Button mt={4} colorScheme='orange' type='submit'>
+//                 Login
+//               </Button>
+//             </Form>
+//           </Box>
+//         )}
+//       </Formik>
+
+//       {/* link to register page */}
+//       <Box mt={4} mx={`auto`}>
+//         <Button colorScheme='orange' onClick={() => router.push('/register')}>
+//           Register
+//         </Button>
+//       </Box>
+//     </Wrapper>
+//   );
+// };
+
+// export default Login;
+
 import React from 'react';
 import { Formik, Field, Form } from 'formik';
 import { Button } from '@chakra-ui/button';
 import Wrapper from '../components/Wrapper';
 import InputField from '../components/InputField';
-import { Box, border } from '@chakra-ui/react';
-import { useMutation } from 'urql';
-import { LoginDocument } from '../codegen/graphql';
+import { Box, Center } from '@chakra-ui/react';
+import { useLoginMutation } from '../codegen/graphql';
 import { toErrorMap } from '../utils/toErrorMap';
 import { useRouter } from 'next/router';
-import { withUrqlClient } from 'next-urql';
-import { createUrqlClient } from '../utils/createUrqlClient';
 
 const Login: React.FC<{}> = ({}) => {
-  const [, loginFunc] = useMutation(LoginDocument);
+  const [login] = useLoginMutation();
   const router = useRouter();
-  console.log('🚀 ~ file: login.tsx:17 ~ router:', router);
 
   return (
     <Wrapper variant='small'>
       <Formik
         initialValues={{ username: '', password: '' }}
         onSubmit={async (values, { setErrors }) => {
-          const response = await loginFunc(values);
+          const response = await login({ variables: values });
 
           if (response.data?.login.errors) {
             setErrors(toErrorMap(response.data.login.errors));
-            // console.log('errors', response.data.login.errors); // errors
           } else if (response.data?.login.user) {
-            // if coming query has string, came from unauth error
             if (typeof router.query.next === 'string') {
               router.push(router.query.next);
             } else {
-              // worked
               router.push('/');
             }
           }
         }}
       >
         {({ values }) => (
-          <Box border='1px' p={8} rounded='md'>
+          <Box
+            border='1px'
+            borderColor='gray.300'
+            p={8}
+            rounded='md'
+            boxShadow='md'
+            bg='white'
+          >
             <Form>
               <InputField
                 name='username'
@@ -61,8 +130,15 @@ const Login: React.FC<{}> = ({}) => {
           </Box>
         )}
       </Formik>
+
+      {/* link to register page */}
+      <Center mt={4} mx={`auto`}>
+        <Button colorScheme='orange' onClick={() => router.push('/register')}>
+          Register for an account
+        </Button>
+      </Center>
     </Wrapper>
   );
 };
 
-export default withUrqlClient(createUrqlClient)(Login);
+export default Login;

@@ -1,26 +1,22 @@
 import React from 'react';
-import { createUrqlClient } from '../../../utils/createUrqlClient';
-import { withUrqlClient } from 'next-urql';
 import { Box, Button } from '@chakra-ui/react';
 import { Formik, Form } from 'formik';
 import { useRouter } from 'next/router';
 import InputField from '../../../components/InputField';
 import Layout from '../../../components/Layout';
-import { useMutation, useQuery } from 'urql';
-import { PostDocument, UpdatePostDocument } from '../../../codegen/graphql';
+import { usePostQuery, useUpdatePostMutation } from '../../../codegen/graphql';
 
 const EditPost = ({}) => {
   const router = useRouter();
-  const [{ data, error, fetching }] = useQuery({
-    query: PostDocument,
+  const { data, error, loading } = usePostQuery({
     variables: {
       id: parseInt(router.query.id as string),
     },
   });
 
-  const [, updatePost] = useMutation(UpdatePostDocument);
+  const [updatePost] = useUpdatePostMutation();
 
-  if (fetching) {
+  if (loading) {
     return (
       <Layout>
         <div>loading...</div>
@@ -35,8 +31,10 @@ const EditPost = ({}) => {
           initialValues={{ title: data.post.title, text: data.post.text }}
           onSubmit={async (values) => {
             await updatePost({
-              id: parseInt(router.query.id as string),
-              ...values,
+              variables: {
+                id: parseInt(router.query.id as string),
+                ...values,
+              },
             });
             router.push('/');
           }}
@@ -71,4 +69,4 @@ const EditPost = ({}) => {
   );
 };
 
-export default withUrqlClient(createUrqlClient)(EditPost);
+export default EditPost;
