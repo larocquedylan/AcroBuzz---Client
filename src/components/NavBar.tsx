@@ -20,6 +20,7 @@ import NextLink from 'next/link';
 import { ReactNode, useEffect, useState } from 'react';
 import { useLogoutMutation, useMeQuery } from '../codegen/graphql';
 import { isServerSide } from '../utils/isServerSide';
+import { useApolloClient } from '@apollo/client';
 
 interface NavBarProps {
   pageProps: any;
@@ -55,8 +56,11 @@ function NavBar({ pageProps }: NavBarProps) {
 
   const [logout, { loading: logoutFetching }] = useLogoutMutation();
 
+  const apolloClient = useApolloClient();
+
   const handleLogout = async (event: React.MouseEvent<HTMLButtonElement>) => {
-    await logout({});
+    await logout();
+    await apolloClient.resetStore();
   };
 
   const [username, setUsername] = useState<string | undefined>(undefined);
