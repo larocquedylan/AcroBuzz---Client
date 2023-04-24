@@ -5,15 +5,15 @@ import {
   GetPaginatedPostsQuery,
   VoteDocument,
   VoteMutationVariables,
+  useVoteMutation,
 } from '../codegen/graphql';
-import { useMutation } from 'urql';
 
 interface VoteSectionProps {
   post: GetPaginatedPostsQuery['posts']['posts'][0];
 }
 
 const VoteSection: React.FC<VoteSectionProps> = ({ post }) => {
-  const [, vote] = useMutation(VoteDocument);
+  const [vote, { data, loading, error }] = useVoteMutation();
   const [loadingState, setLoadingState] = React.useState<
     'upvote-loading' | 'downvote-loading' | 'not-loading'
   >('not-loading');
@@ -33,8 +33,10 @@ const VoteSection: React.FC<VoteSectionProps> = ({ post }) => {
         onClick={async () => {
           setLoadingState('upvote-loading');
           await vote({
-            postId: post.id,
-            voteValue: 1,
+            variables: {
+              postId: post.id,
+              voteValue: 1,
+            },
           });
           setLoadingState('not-loading');
         }}
@@ -49,8 +51,10 @@ const VoteSection: React.FC<VoteSectionProps> = ({ post }) => {
         onClick={async () => {
           setLoadingState('downvote-loading');
           await vote({
-            postId: post.id,
-            voteValue: -1,
+            variables: {
+              postId: post.id,
+              voteValue: -1,
+            },
           });
           setLoadingState('not-loading');
         }}
