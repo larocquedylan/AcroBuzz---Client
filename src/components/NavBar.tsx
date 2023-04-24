@@ -16,12 +16,9 @@ import {
   useColorModeValue,
   useDisclosure,
 } from '@chakra-ui/react';
-import { withUrqlClient } from 'next-urql';
 import NextLink from 'next/link';
 import { ReactNode, useEffect, useState } from 'react';
-import { useMutation, useQuery } from 'urql';
-import { LogoutDocument, MeDocument, MeQuery } from '../codegen/graphql';
-import { createUrqlClient } from '../utils/createUrqlClient';
+import { useLogoutMutation, useMeQuery } from '../codegen/graphql';
 import { isServerSide } from '../utils/isServerSide';
 
 interface NavBarProps {
@@ -48,18 +45,15 @@ function NavBar({ pageProps }: NavBarProps) {
   const { colorMode, toggleColorMode } = useColorMode();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const [result, setResult] = useState({ data: undefined, fetching: true });
+  const [result, setResult] = useState({ data: undefined, loading: true });
 
-  const [{ data, fetching }] = useQuery<MeQuery>({
-    query: MeDocument,
-    pause: isServerSide,
-  });
+  const { data, loading, error } = useMeQuery({ skip: isServerSide });
 
   useEffect(() => {
-    setResult({ data, fetching });
-  }, [data, fetching]);
+    setResult({ data, loading });
+  }, [data, loading]);
 
-  const [, logout] = useMutation(LogoutDocument);
+  const [logout, { loading: logoutFetching }] = useLogoutMutation();
 
   const handleLogout = async (event: React.MouseEvent<HTMLButtonElement>) => {
     await logout({});
@@ -73,7 +67,7 @@ function NavBar({ pageProps }: NavBarProps) {
 
   let body = null;
 
-  if (result.fetching) {
+  if (result.loading) {
     body = <div>loading...</div>;
   } else if (!result.data?.me) {
     body = (
@@ -175,5 +169,5 @@ function NavBar({ pageProps }: NavBarProps) {
   );
 }
 
-export default withUrqlClient(createUrqlClient, { ssr: true })(NavBar);
+export default NavBar;
 // export default NavBar;
