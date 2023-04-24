@@ -63,7 +63,7 @@ const Index = () => {
           {allPosts.map((post) => (
             <Card key={post.id} variant={'elevated'} padding={8}>
               <Flex>
-                {/* <VoteSection post={post} /> */}
+                <VoteSection post={post} />
                 <Box flex={1}>
                   <Flex
                     direction={'row'}
