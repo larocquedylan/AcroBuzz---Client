@@ -13,6 +13,7 @@ import {
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import {
+  GetPaginatedPostsDocument,
   useDeletePostMutation,
   useGetPaginatedPostsQuery,
   useMeQuery,
@@ -31,8 +32,14 @@ const Index = () => {
     notifyOnNetworkStatusChange: true,
   });
 
-  const [deletePost] = useDeletePostMutation();
-
+  const [deletePost] = useDeletePostMutation({
+    refetchQueries: [
+      {
+        query: GetPaginatedPostsDocument,
+        variables: { limit: 10, cursor: null },
+      },
+    ],
+  });
   const isLoadingMore = loading && data;
 
   return (
