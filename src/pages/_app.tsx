@@ -5,7 +5,7 @@ import { ApolloClient, ApolloProvider, InMemoryCache } from '@apollo/client';
 import { PaginatedPosts } from '../codegen/graphql';
 
 const client = new ApolloClient({
-  uri: 'http://localhost:4000/graphql',
+  uri: process.env.NEXT_PUBLIC_API_URL,
   credentials: 'include',
   cache: new InMemoryCache({
     typePolicies: {
