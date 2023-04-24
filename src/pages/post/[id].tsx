@@ -1,23 +1,19 @@
-import { withUrqlClient } from 'next-urql';
-import React from 'react';
-import { createUrqlClient } from '../../utils/createUrqlClient';
 import { useRouter } from 'next/router';
-import { useMutation, useQuery } from 'urql';
-import { DeletePostDocument, PostDocument } from '../../codegen/graphql';
+import React from 'react';
 import Layout from '../../components/Layout';
 import { Box, Flex, Heading, IconButton } from '@chakra-ui/react';
 import { DeleteIcon } from '@chakra-ui/icons';
+import { useDeletePostMutation, usePostQuery } from '../../codegen/graphql';
 
 const Post = ({}) => {
   const router = useRouter();
-  const [{ data, error, fetching }] = useQuery({
-    query: PostDocument,
+  const { data, error, loading } = usePostQuery({
     variables: {
       id: parseInt(router.query.id as string),
     },
   });
 
-  const [, deleteFunc] = useMutation(DeletePostDocument);
+  const [deleteFunc] = useDeletePostMutation();
 
   if (error) {
     return (
@@ -27,7 +23,7 @@ const Post = ({}) => {
     );
   }
 
-  if (fetching) {
+  if (loading) {
     return (
       <Layout>
         <div>loading...</div>
@@ -46,7 +42,7 @@ const Post = ({}) => {
           aria-label='delete post'
           icon={<DeleteIcon />}
           onClick={() => {
-            deleteFunc({ deletePostId: data?.post?.id });
+            deleteFunc({ variables: { deletePostId: data?.post?.id } });
           }}
         />
       </Flex>
@@ -54,4 +50,4 @@ const Post = ({}) => {
   );
 };
 
-export default withUrqlClient(createUrqlClient, { ssr: true })(Post);
+export default Post;
