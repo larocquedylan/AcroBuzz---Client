@@ -1,19 +1,18 @@
 import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 import {
   Box,
+  Button,
   Card,
+  Center,
   Flex,
   Heading,
   IconButton,
+  Spinner,
   Stack,
   Text,
-  Spinner,
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
-import { useEffect, useState } from 'react';
 import {
-  Exact,
-  GetPaginatedPostsQuery,
   useDeletePostMutation,
   useGetPaginatedPostsQuery,
   useMeQuery,
@@ -90,18 +89,26 @@ const Index = () => {
         </Stack>
       )}
       {data && data.posts.nextCursor && (
-        <button
-          onClick={() => {
-            fetchMore({
-              variables: {
-                limit: variables?.limit,
-                cursor: data.posts.nextCursor,
-              },
-            });
-          }}
-        >
-          Load more
-        </button>
+        <Center mt={4} mb={4} padding={'2'}>
+          <Button
+            variant={'outline'}
+            colorScheme='orange'
+            _hover={{
+              transform: 'translateY(-5px)',
+              boxShadow: 'lg',
+            }}
+            onClick={() => {
+              fetchMore({
+                variables: {
+                  limit: variables?.limit,
+                  cursor: data.posts.nextCursor,
+                },
+              });
+            }}
+          >
+            {isLoadingMore ? <Spinner /> : 'Load more'}
+          </Button>
+        </Center>
       )}
     </Layout>
   );
