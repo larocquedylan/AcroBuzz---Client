@@ -2,7 +2,6 @@ query GetPaginatedPosts($cursor: String, $limit: Int) {
   posts(input: { cursor: $cursor, limit: $limit }) {
     posts {
       id
-      __typename
       createdAt
       updatedAt
       title
