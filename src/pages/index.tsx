@@ -28,6 +28,7 @@ const Index = () => {
       limit: 10,
       cursor: null,
     },
+    notifyOnNetworkStatusChange: true,
   });
 
   const [deletePost] = useDeletePostMutation();
