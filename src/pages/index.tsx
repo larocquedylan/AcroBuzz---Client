@@ -18,15 +18,17 @@ import {
 } from '../codegen/graphql';
 import Layout from '../components/Layout';
 import VoteSection from '../components/VoteSection';
+import { cursorTo } from 'readline';
 
 const Index = () => {
-  const [variables, setVariables] = useState<
-    Exact<{ cursor?: string; limit?: number }>
-  >({ limit: 10 });
-
   const { data: meData } = useMeQuery();
 
-  const { data, loading, fetchMore } = useGetPaginatedPostsQuery({ variables });
+  const { data, loading, fetchMore, variables } = useGetPaginatedPostsQuery({
+    variables: {
+      limit: 10,
+      cursor: null,
+    },
+  });
 
   const [deletePost] = useDeletePostMutation();
 
@@ -46,13 +48,13 @@ const Index = () => {
     }
   }, [data]);
 
-  const loadMorePosts = () => {
-    if (data && data.posts.nextCursor) {
-      fetchMore({
-        variables: { cursor: data.posts.nextCursor, limit: 10 },
-      });
-    }
-  };
+  // const loadMorePosts = () => {
+  //   if (data && data.posts.nextCursor) {
+  //     fetchMore({
+  //       variables: { cursor: data.posts.nextCursor, limit: 10 },
+  //     });
+  //   }
+  // };
 
   return (
     <Layout>
@@ -108,7 +110,18 @@ const Index = () => {
         </Stack>
       )}
       {data && data.posts.nextCursor && (
-        <button onClick={loadMorePosts}>Load More</button>
+        <button
+          onClick={() => {
+            fetchMore({
+              variables: {
+                limit: variables?.limit,
+                cursor: data.posts.nextCursor,
+              },
+            });
+          }}
+        >
+          Load More
+        </button>
       )}
     </Layout>
   );
