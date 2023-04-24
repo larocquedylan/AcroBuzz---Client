@@ -1,3 +1,4 @@
+import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 import {
   Box,
   Card,
@@ -7,36 +8,27 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react';
-import { withUrqlClient } from 'next-urql';
 import NextLink from 'next/link';
 import { useEffect, useState } from 'react';
-import { useMutation, useQuery } from 'urql';
 import {
-  DeletePostDocument,
   Exact,
-  GetPaginatedPostsDocument,
-  MeDocument,
+  useDeletePostMutation,
+  useGetPaginatedPostsQuery,
+  useMeQuery,
 } from '../codegen/graphql';
 import Layout from '../components/Layout';
 import VoteSection from '../components/VoteSection';
-import { createUrqlClient } from '../utils/createUrqlClient';
-import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 
 const Index = () => {
   const [variables, setVariables] = useState<
     Exact<{ cursor?: string; limit?: number }>
   >({ limit: 10 });
 
-  const [{ data: meData }] = useQuery({
-    query: MeDocument,
-  });
+  const { data: meData } = useMeQuery();
 
-  const [{ data, fetching }] = useQuery({
-    query: GetPaginatedPostsDocument,
-    variables,
-  });
+  const { data, loading, fetchMore } = useGetPaginatedPostsQuery({ variables });
 
-  const [, deleteFunc] = useMutation(DeletePostDocument);
+  const [deletePost] = useDeletePostMutation();
 
   const [allPosts, setAllPosts] = useState([]);
 
@@ -56,20 +48,22 @@ const Index = () => {
 
   const loadMorePosts = () => {
     if (data && data.posts.nextCursor) {
-      setVariables({ cursor: data.posts.nextCursor, limit: 10 });
+      fetchMore({
+        variables: { cursor: data.posts.nextCursor, limit: 10 },
+      });
     }
   };
 
   return (
     <Layout>
-      {!data && fetching ? (
+      {!data && loading ? (
         <p>loading.. </p>
       ) : (
         <Stack spacing='6' maxW={800}>
           {allPosts.map((post) => (
             <Card key={post.id} variant={'elevated'} padding={8}>
               <Flex>
-                <VoteSection post={post} />
+                {/* <VoteSection post={post} /> */}
                 <Box flex={1}>
                   <Flex
                     direction={'row'}
@@ -81,7 +75,7 @@ const Index = () => {
                         {post.title}
                       </Heading>
                     </NextLink>
-                    {meData?.me?.userId !== post.author.id ? null : (
+                    {meData?.me?.id !== post.author.id ? null : (
                       <Box ml={'max'}>
                         <NextLink
                           href='/post/edit/[id]'
@@ -97,7 +91,9 @@ const Index = () => {
                           ml={4}
                           icon={<DeleteIcon />}
                           onClick={() => {
-                            deleteFunc({ deletePostId: post.id });
+                            deletePost({
+                              variables: { deletePostId: post.id },
+                            });
                           }}
                         />
                       </Box>
@@ -118,4 +114,7 @@ const Index = () => {
   );
 };
 
-export default withUrqlClient(createUrqlClient, { ssr: true })(Index);
+export default Index;
+function fetchMore(arg0: { variables: { cursor: any; limit: number } }) {
+  throw new Error('Function not implemented.');
+}
