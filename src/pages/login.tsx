@@ -106,7 +106,6 @@ const Login: React.FC<{}> = ({}) => {
             p={8}
             rounded='md'
             boxShadow='md'
-            bg='white'
           >
             <Form>
               <InputField
